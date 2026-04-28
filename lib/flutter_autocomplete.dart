@@ -1,0 +1,12 @@
+export 'src/autocomplete.dart';
+export 'src/autocomplete_chip.dart';
+export 'src/autocomplete_controller.dart';
+export 'src/autocomplete_filter.dart';
+export 'src/autocomplete_intents_actions.dart';
+export 'src/autocomplete_option.dart';
+export 'src/autocomplete_popup.dart';
+export 'src/autocomplete_theme.dart';
+export 'src/autocomplete_types.dart';
+export 'src/utils/debouncer.dart';
+export 'src/utils/diacritics.dart';
+export 'src/utils/option_grouping.dart';
