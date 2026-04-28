@@ -36,6 +36,37 @@ AutocompleteField<String>.single(
 )
 ```
 
+## Validation
+
+All constructors integrate with Flutter `Form` and expose the standard form
+hooks for their selection shape:
+
+- single-value modes use `String? Function(T? value)? validator`
+- multiple-value modes use `String? Function(List<T> values)? validator`
+- all modes support `onSaved` and `autovalidateMode`
+
+```dart
+final formKey = GlobalKey<FormState>();
+
+Form(
+  key: formKey,
+  child: AutocompleteField<String>.multiple(
+    options: const ['Apple', 'Banana', 'Cherry'],
+    getOptionLabel: (option) => option,
+    validator: (values) {
+      if (values == null || values.isEmpty) {
+        return 'Pick at least one fruit';
+      }
+      return null;
+    },
+    decoration: const InputDecoration(
+      labelText: 'Fruits',
+      border: OutlineInputBorder(),
+    ),
+  ),
+)
+```
+
 ## Constructor Guide
 
 All modes are exposed through explicit constructors:
@@ -197,6 +228,7 @@ The package intentionally leans on Flutter theming primitives:
 - The package uses Flutter text field, chip, and tap semantics instead of web ARIA roles.
 - Group headers are visual only.
 - Creatable rows are explicit actions, not implicit raw-text selections.
+- Validation errors render through the field `InputDecoration`.
 - Keyboard shortcuts and arrow-key navigation are intentionally unsupported.
 
 ## Mobile Behavior Notes

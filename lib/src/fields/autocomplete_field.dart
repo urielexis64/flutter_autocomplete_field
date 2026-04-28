@@ -19,6 +19,9 @@ import 'autocomplete_field_view.dart';
 ///
 /// The package does not support physical keyboard navigation, desktop-style
 /// shortcut handling, or virtualized option lists.
+///
+/// Every constructor integrates with Flutter forms through `validator`,
+/// `onSaved`, and `autovalidateMode`.
 class AutocompleteField<T> extends StatelessWidget {
   const AutocompleteField._({
     required AutocompleteFieldConfiguration<T> configuration,
@@ -28,6 +31,9 @@ class AutocompleteField<T> extends StatelessWidget {
   final AutocompleteFieldConfiguration<T> _configuration;
 
   /// Creates a single-select autocomplete backed by a synchronous option list.
+  ///
+  /// This constructor supports `Form` validation through
+  /// `FormFieldValidator<T?>`.
   ///
   /// ```dart
   /// AutocompleteField.single<String>(
@@ -61,6 +67,9 @@ class AutocompleteField<T> extends StatelessWidget {
     InputDecoration decoration = const InputDecoration(),
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<T?>? validator,
+    FormFieldSetter<T?>? onSaved,
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool enabled = true,
     bool readOnly = false,
     bool autofocus = false,
@@ -80,10 +89,13 @@ class AutocompleteField<T> extends StatelessWidget {
         clearButtonConfig: clearButtonConfig,
         dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
+        autovalidateMode: autovalidateMode,
         isOptionEqualToValue: isOptionEqualToValue,
         decoration: decoration,
         controller: controller,
         focusNode: focusNode,
+        validator: validator,
+        onSaved: onSaved,
         enabled: enabled,
         readOnly: readOnly,
         autofocus: autofocus,
@@ -95,6 +107,9 @@ class AutocompleteField<T> extends StatelessWidget {
   ///
   /// The field uses an [InputDecorator] plus a wrapping chip/input layout so it
   /// can grow vertically on mobile without overflowing.
+  ///
+  /// This constructor supports `Form` validation through
+  /// `FormFieldValidator<List<T>>`.
   factory AutocompleteField.multiple({
     Key? key,
     required List<T> options,
@@ -121,6 +136,9 @@ class AutocompleteField<T> extends StatelessWidget {
     InputDecoration decoration = const InputDecoration(),
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<List<T>>? validator,
+    FormFieldSetter<List<T>>? onSaved,
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool enabled = true,
     bool readOnly = false,
     bool autofocus = false,
@@ -140,11 +158,14 @@ class AutocompleteField<T> extends StatelessWidget {
         clearButtonConfig: clearButtonConfig,
         dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
+        autovalidateMode: autovalidateMode,
         chipConfig: chipConfig,
         isOptionEqualToValue: isOptionEqualToValue,
         decoration: decoration,
         controller: controller,
         focusNode: focusNode,
+        validator: validator,
+        onSaved: onSaved,
         enabled: enabled,
         readOnly: readOnly,
         autofocus: autofocus,
@@ -153,6 +174,9 @@ class AutocompleteField<T> extends StatelessWidget {
   }
 
   /// Creates an async single-select autocomplete.
+  ///
+  /// This constructor supports `Form` validation through
+  /// `FormFieldValidator<T?>`.
   ///
   /// ```dart
   /// AutocompleteField.async<String>(
@@ -184,6 +208,9 @@ class AutocompleteField<T> extends StatelessWidget {
     InputDecoration decoration = const InputDecoration(),
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<T?>? validator,
+    FormFieldSetter<T?>? onSaved,
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool enabled = true,
     bool readOnly = false,
     bool autofocus = false,
@@ -203,10 +230,13 @@ class AutocompleteField<T> extends StatelessWidget {
         clearButtonConfig: clearButtonConfig,
         dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
+        autovalidateMode: autovalidateMode,
         isOptionEqualToValue: isOptionEqualToValue,
         decoration: decoration,
         controller: controller,
         focusNode: focusNode,
+        validator: validator,
+        onSaved: onSaved,
         enabled: enabled,
         readOnly: readOnly,
         autofocus: autofocus,
@@ -215,6 +245,9 @@ class AutocompleteField<T> extends StatelessWidget {
   }
 
   /// Creates an async multiple-select autocomplete.
+  ///
+  /// This constructor supports `Form` validation through
+  /// `FormFieldValidator<List<T>>`.
   factory AutocompleteField.asyncMultiple({
     Key? key,
     required AutocompleteAsyncConfig<T> asyncConfig,
@@ -241,6 +274,9 @@ class AutocompleteField<T> extends StatelessWidget {
     InputDecoration decoration = const InputDecoration(),
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<List<T>>? validator,
+    FormFieldSetter<List<T>>? onSaved,
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool enabled = true,
     bool readOnly = false,
     bool autofocus = false,
@@ -260,11 +296,14 @@ class AutocompleteField<T> extends StatelessWidget {
         clearButtonConfig: clearButtonConfig,
         dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
+        autovalidateMode: autovalidateMode,
         chipConfig: chipConfig,
         isOptionEqualToValue: isOptionEqualToValue,
         decoration: decoration,
         controller: controller,
         focusNode: focusNode,
+        validator: validator,
+        onSaved: onSaved,
         enabled: enabled,
         readOnly: readOnly,
         autofocus: autofocus,
@@ -277,6 +316,9 @@ class AutocompleteField<T> extends StatelessWidget {
   /// The generic [T] remains the selected value type. When the user taps the
   /// synthetic create row, [AutocompleteCreatableConfig.createOption] converts
   /// the current text input into a new `T`.
+  ///
+  /// This constructor supports `Form` validation through
+  /// `FormFieldValidator<T?>`.
   factory AutocompleteField.creatable({
     Key? key,
     required List<T> options,
@@ -300,6 +342,9 @@ class AutocompleteField<T> extends StatelessWidget {
     InputDecoration decoration = const InputDecoration(),
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<T?>? validator,
+    FormFieldSetter<T?>? onSaved,
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool enabled = true,
     bool readOnly = false,
     bool autofocus = false,
@@ -320,10 +365,13 @@ class AutocompleteField<T> extends StatelessWidget {
         clearButtonConfig: clearButtonConfig,
         dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
+        autovalidateMode: autovalidateMode,
         isOptionEqualToValue: isOptionEqualToValue,
         decoration: decoration,
         controller: controller,
         focusNode: focusNode,
+        validator: validator,
+        onSaved: onSaved,
         enabled: enabled,
         readOnly: readOnly,
         autofocus: autofocus,
@@ -332,6 +380,9 @@ class AutocompleteField<T> extends StatelessWidget {
   }
 
   /// Creates a creatable multiple-select autocomplete.
+  ///
+  /// This constructor supports `Form` validation through
+  /// `FormFieldValidator<List<T>>`.
   factory AutocompleteField.creatableMultiple({
     Key? key,
     required List<T> options,
@@ -359,6 +410,9 @@ class AutocompleteField<T> extends StatelessWidget {
     InputDecoration decoration = const InputDecoration(),
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<List<T>>? validator,
+    FormFieldSetter<List<T>>? onSaved,
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool enabled = true,
     bool readOnly = false,
     bool autofocus = false,
@@ -379,11 +433,14 @@ class AutocompleteField<T> extends StatelessWidget {
         clearButtonConfig: clearButtonConfig,
         dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
+        autovalidateMode: autovalidateMode,
         chipConfig: chipConfig,
         isOptionEqualToValue: isOptionEqualToValue,
         decoration: decoration,
         controller: controller,
         focusNode: focusNode,
+        validator: validator,
+        onSaved: onSaved,
         enabled: enabled,
         readOnly: readOnly,
         autofocus: autofocus,
@@ -393,6 +450,52 @@ class AutocompleteField<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AutocompleteFieldView<T>(configuration: _configuration);
+    if (_configuration.isMultiple) {
+      return FormField<List<T>>(
+        key:
+            ValueKey<Object>(Object.hashAll(_configuration.values ?? const [])),
+        enabled: _configuration.enabled,
+        initialValue: List<T>.from(_configuration.values ?? const []),
+        validator: _configuration.multipleValidator,
+        onSaved: _configuration.multipleOnSaved,
+        autovalidateMode: _configuration.autovalidateMode,
+        builder: (state) {
+          final configuration = _configuration.copyWith(
+            values: List<T>.from(state.value ?? const []),
+            onValuesChanged: (values) {
+              final nextValues = List<T>.unmodifiable(values);
+              state.didChange(nextValues);
+              _configuration.onValuesChanged?.call(nextValues);
+            },
+            decoration: _configuration.decoration.copyWith(
+              errorText: state.errorText,
+            ),
+          );
+          return AutocompleteFieldView<T>(configuration: configuration);
+        },
+      );
+    }
+
+    return FormField<T>(
+      key: ValueKey<Object?>(_configuration.value),
+      enabled: _configuration.enabled,
+      initialValue: _configuration.value,
+      validator: _configuration.singleValidator,
+      onSaved: _configuration.singleOnSaved,
+      autovalidateMode: _configuration.autovalidateMode,
+      builder: (state) {
+        final configuration = _configuration.copyWith(
+          value: state.value,
+          onChanged: (value) {
+            state.didChange(value);
+            _configuration.onChanged?.call(value);
+          },
+          decoration: _configuration.decoration.copyWith(
+            errorText: state.errorText,
+          ),
+        );
+        return AutocompleteFieldView<T>(configuration: configuration);
+      },
+    );
   }
 }

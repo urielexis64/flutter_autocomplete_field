@@ -15,6 +15,8 @@ import '../models/autocomplete_typedefs.dart';
 import 'selection_mode.dart';
 
 class AutocompleteFieldConfiguration<T> {
+  static const Object _unset = Object();
+
   const AutocompleteFieldConfiguration._({
     required this.selectionMode,
     required this.getOptionLabel,
@@ -24,6 +26,7 @@ class AutocompleteFieldConfiguration<T> {
     required this.clearButtonConfig,
     required this.dropdownButtonConfig,
     required this.selectionConfig,
+    required this.autovalidateMode,
     required this.enabled,
     required this.readOnly,
     required this.autofocus,
@@ -41,6 +44,10 @@ class AutocompleteFieldConfiguration<T> {
     this.values,
     this.onChanged,
     this.onValuesChanged,
+    this.singleValidator,
+    this.multipleValidator,
+    this.singleOnSaved,
+    this.multipleOnSaved,
   });
 
   factory AutocompleteFieldConfiguration.single({
@@ -52,6 +59,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteClearButtonConfig clearButtonConfig,
     required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
+    required AutovalidateMode autovalidateMode,
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
@@ -63,6 +71,8 @@ class AutocompleteFieldConfiguration<T> {
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<T?>? validator,
+    FormFieldSetter<T?>? onSaved,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.single,
@@ -78,10 +88,13 @@ class AutocompleteFieldConfiguration<T> {
       clearButtonConfig: clearButtonConfig,
       dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
+      autovalidateMode: autovalidateMode,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
       controller: controller,
       focusNode: focusNode,
+      singleValidator: validator,
+      singleOnSaved: onSaved,
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
@@ -100,6 +113,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteClearButtonConfig clearButtonConfig,
     required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
+    required AutovalidateMode autovalidateMode,
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
@@ -109,6 +123,8 @@ class AutocompleteFieldConfiguration<T> {
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<List<T>>? validator,
+    FormFieldSetter<List<T>>? onSaved,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.multiple,
@@ -124,11 +140,14 @@ class AutocompleteFieldConfiguration<T> {
       clearButtonConfig: clearButtonConfig,
       dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
+      autovalidateMode: autovalidateMode,
       chipConfig: chipConfig,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
       controller: controller,
       focusNode: focusNode,
+      multipleValidator: validator,
+      multipleOnSaved: onSaved,
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
@@ -144,6 +163,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteClearButtonConfig clearButtonConfig,
     required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
+    required AutovalidateMode autovalidateMode,
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
@@ -155,6 +175,8 @@ class AutocompleteFieldConfiguration<T> {
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<T?>? validator,
+    FormFieldSetter<T?>? onSaved,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.single,
@@ -170,10 +192,13 @@ class AutocompleteFieldConfiguration<T> {
       clearButtonConfig: clearButtonConfig,
       dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
+      autovalidateMode: autovalidateMode,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
       controller: controller,
       focusNode: focusNode,
+      singleValidator: validator,
+      singleOnSaved: onSaved,
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
@@ -192,6 +217,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteClearButtonConfig clearButtonConfig,
     required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
+    required AutovalidateMode autovalidateMode,
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
@@ -201,6 +227,8 @@ class AutocompleteFieldConfiguration<T> {
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<List<T>>? validator,
+    FormFieldSetter<List<T>>? onSaved,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.multiple,
@@ -216,11 +244,14 @@ class AutocompleteFieldConfiguration<T> {
       clearButtonConfig: clearButtonConfig,
       dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
+      autovalidateMode: autovalidateMode,
       chipConfig: chipConfig,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
       controller: controller,
       focusNode: focusNode,
+      multipleValidator: validator,
+      multipleOnSaved: onSaved,
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
@@ -237,6 +268,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteClearButtonConfig clearButtonConfig,
     required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
+    required AutovalidateMode autovalidateMode,
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
@@ -248,6 +280,8 @@ class AutocompleteFieldConfiguration<T> {
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<T?>? validator,
+    FormFieldSetter<T?>? onSaved,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.single,
@@ -264,10 +298,13 @@ class AutocompleteFieldConfiguration<T> {
       clearButtonConfig: clearButtonConfig,
       dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
+      autovalidateMode: autovalidateMode,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
       controller: controller,
       focusNode: focusNode,
+      singleValidator: validator,
+      singleOnSaved: onSaved,
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
@@ -287,6 +324,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteClearButtonConfig clearButtonConfig,
     required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
+    required AutovalidateMode autovalidateMode,
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
@@ -296,6 +334,8 @@ class AutocompleteFieldConfiguration<T> {
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
     TextEditingController? controller,
     FocusNode? focusNode,
+    FormFieldValidator<List<T>>? validator,
+    FormFieldSetter<List<T>>? onSaved,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.multiple,
@@ -312,11 +352,14 @@ class AutocompleteFieldConfiguration<T> {
       clearButtonConfig: clearButtonConfig,
       dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
+      autovalidateMode: autovalidateMode,
       chipConfig: chipConfig,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
       controller: controller,
       focusNode: focusNode,
+      multipleValidator: validator,
+      multipleOnSaved: onSaved,
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
@@ -340,11 +383,16 @@ class AutocompleteFieldConfiguration<T> {
   final AutocompleteClearButtonConfig clearButtonConfig;
   final AutocompleteDropdownButtonConfig dropdownButtonConfig;
   final AutocompleteSelectionConfig<T> selectionConfig;
+  final AutovalidateMode autovalidateMode;
   final AutocompleteChipConfig<T>? chipConfig;
   final AutocompleteOptionEquality<T>? isOptionEqualToValue;
   final InputDecoration decoration;
   final TextEditingController? controller;
   final FocusNode? focusNode;
+  final FormFieldValidator<T?>? singleValidator;
+  final FormFieldValidator<List<T>>? multipleValidator;
+  final FormFieldSetter<T?>? singleOnSaved;
+  final FormFieldSetter<List<T>>? multipleOnSaved;
   final bool enabled;
   final bool readOnly;
   final bool autofocus;
@@ -352,4 +400,45 @@ class AutocompleteFieldConfiguration<T> {
   bool get isMultiple => selectionMode == AutocompleteSelectionMode.multiple;
   bool get isAsync => asyncConfig != null;
   bool get isCreatable => creatableConfig != null;
+
+  AutocompleteFieldConfiguration<T> copyWith({
+    Object? value = _unset,
+    Object? values = _unset,
+    ValueChanged<T?>? onChanged,
+    ValueChanged<List<T>>? onValuesChanged,
+    InputDecoration? decoration,
+  }) {
+    return AutocompleteFieldConfiguration._(
+      selectionMode: selectionMode,
+      getOptionLabel: getOptionLabel,
+      behaviorConfig: behaviorConfig,
+      popupConfig: popupConfig,
+      decoration: decoration ?? this.decoration,
+      clearButtonConfig: clearButtonConfig,
+      dropdownButtonConfig: dropdownButtonConfig,
+      selectionConfig: selectionConfig,
+      autovalidateMode: autovalidateMode,
+      enabled: enabled,
+      readOnly: readOnly,
+      autofocus: autofocus,
+      options: options,
+      asyncConfig: asyncConfig,
+      creatableConfig: creatableConfig,
+      groupingConfig: groupingConfig,
+      filterConfig: filterConfig,
+      renderingConfig: renderingConfig,
+      chipConfig: chipConfig,
+      isOptionEqualToValue: isOptionEqualToValue,
+      controller: controller,
+      focusNode: focusNode,
+      value: identical(value, _unset) ? this.value : value as T?,
+      values: identical(values, _unset) ? this.values : values as List<T>?,
+      onChanged: onChanged ?? this.onChanged,
+      onValuesChanged: onValuesChanged ?? this.onValuesChanged,
+      singleValidator: singleValidator,
+      multipleValidator: multipleValidator,
+      singleOnSaved: singleOnSaved,
+      multipleOnSaved: multipleOnSaved,
+    );
+  }
 }
