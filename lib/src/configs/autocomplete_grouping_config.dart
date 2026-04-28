@@ -10,12 +10,16 @@ class AutocompleteGroupingConfig<T> {
     this.groupHeaderBuilder,
     this.groupComparator,
     this.sortGroups = false,
-    this.stickyHeaders = false,
+    this.stickyHeaders = true,
   });
 
   final String Function(T option)? groupBy;
   final Widget Function(BuildContext context, String group)? groupHeaderBuilder;
   final int Function(String a, String b)? groupComparator;
   final bool sortGroups;
+
+  /// Whether group headers should stay pinned while scrolling options.
+  ///
+  /// Defaults to `true`.
   final bool stickyHeaders;
 }

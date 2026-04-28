@@ -67,7 +67,7 @@ class AutocompletePopup<T> extends StatelessWidget {
         ),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: popupConfig.maxHeight),
-          child: Padding(padding: popupConfig.padding, child: child),
+          child: child,
         ),
       ),
     );
@@ -76,8 +76,11 @@ class AutocompletePopup<T> extends StatelessWidget {
   Widget _buildLoading(BuildContext context) {
     return SizedBox(
       height: popupConfig.emptyStateHeight,
-      child: renderingConfig?.loadingBuilder?.call(context, query) ??
-          const Center(child: CircularProgressIndicator.adaptive()),
+      child: Padding(
+        padding: popupConfig.padding,
+        child: renderingConfig?.loadingBuilder?.call(context, query) ??
+            const Center(child: CircularProgressIndicator.adaptive()),
+      ),
     );
   }
 
@@ -85,17 +88,21 @@ class AutocompletePopup<T> extends StatelessWidget {
     if (options.isEmpty && createInput == null) {
       return SizedBox(
         height: popupConfig.emptyStateHeight,
-        child: renderingConfig?.emptyBuilder?.call(context, query) ??
-            Center(
-              child: Text(
-                'No options',
-                style: Theme.of(context).textTheme.bodyMedium,
+        child: Padding(
+          padding: popupConfig.padding,
+          child: renderingConfig?.emptyBuilder?.call(context, query) ??
+              Center(
+                child: Text(
+                  'No options',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ),
-            ),
+        ),
       );
     }
 
-    return Scrollbar(
+    return RawScrollbar(
+      padding: EdgeInsets.zero,
       child: CustomScrollView(
         shrinkWrap: true,
         slivers: _buildSlivers(context),
@@ -104,6 +111,42 @@ class AutocompletePopup<T> extends StatelessWidget {
   }
 
   List<Widget> _buildSlivers(BuildContext context) {
+    final contentSlivers = _buildContentSlivers(context);
+    final resolvedPadding = popupConfig.padding.resolve(
+      Directionality.of(context),
+    );
+    final horizontalPadding = EdgeInsets.only(
+      left: resolvedPadding.left,
+      right: resolvedPadding.right,
+    );
+    final verticalPadding = EdgeInsets.only(
+      top: resolvedPadding.top,
+      bottom: resolvedPadding.bottom,
+    );
+
+    final slivers = <Widget>[
+      if (verticalPadding.top > 0)
+        SliverToBoxAdapter(child: SizedBox(height: verticalPadding.top)),
+      ...contentSlivers,
+      if (verticalPadding.bottom > 0)
+        SliverToBoxAdapter(child: SizedBox(height: verticalPadding.bottom)),
+    ];
+
+    if (horizontalPadding == EdgeInsets.zero) {
+      return slivers;
+    }
+
+    return slivers
+        .map(
+          (sliver) => SliverPadding(
+            padding: horizontalPadding,
+            sliver: sliver,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  List<Widget> _buildContentSlivers(BuildContext context) {
     final groups = buildAutocompleteGroups(options, groupingConfig);
     final slivers = <Widget>[];
 
@@ -111,8 +154,14 @@ class AutocompletePopup<T> extends StatelessWidget {
       slivers.add(_buildFlatOptionsSliver(context, options));
     } else if (groupingConfig?.stickyHeaders ?? false) {
       for (final group in groups) {
-        slivers.add(_buildStickyGroupHeader(context, group.name));
-        slivers.add(_buildFlatOptionsSliver(context, group.options));
+        slivers.add(
+          SliverMainAxisGroup(
+            slivers: [
+              _buildStickyGroupHeader(context, group.name),
+              _buildFlatOptionsSliver(context, group.options),
+            ],
+          ),
+        );
       }
     } else {
       for (final group in groups) {

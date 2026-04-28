@@ -93,4 +93,28 @@ void main() {
     expect(popupSize.height, lessThan(220));
     expect(popupSize.height, lessThan(screenHeight));
   });
+
+  testWidgets('popup scrollbar has no vertical padding', (tester) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: List<String>.generate(24, (index) => 'Option $index'),
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+
+    final scrollbar = tester.widget<RawScrollbar>(
+      find.descendant(
+        of: findPopupSurface(),
+        matching: find.byType(RawScrollbar),
+      ),
+    );
+
+    expect(scrollbar.padding, EdgeInsets.zero);
+  });
 }
