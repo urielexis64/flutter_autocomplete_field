@@ -5,6 +5,7 @@ import '../configs/autocomplete_behavior_config.dart';
 import '../configs/autocomplete_chip_config.dart';
 import '../configs/autocomplete_clear_button_config.dart';
 import '../configs/autocomplete_creatable_config.dart';
+import '../configs/autocomplete_dropdown_button_config.dart';
 import '../configs/autocomplete_filter_config.dart';
 import '../configs/autocomplete_grouping_config.dart';
 import '../configs/autocomplete_popup_config.dart';
@@ -52,6 +53,8 @@ class AutocompleteField<T> extends StatelessWidget {
     AutocompletePopupConfig popupConfig = const AutocompletePopupConfig(),
     AutocompleteClearButtonConfig clearButtonConfig =
         const AutocompleteClearButtonConfig(),
+    AutocompleteDropdownButtonConfig dropdownButtonConfig =
+        const AutocompleteDropdownButtonConfig(),
     AutocompleteSelectionConfig<T> selectionConfig =
         const AutocompleteSelectionConfig(),
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
@@ -75,6 +78,7 @@ class AutocompleteField<T> extends StatelessWidget {
         renderingConfig: renderingConfig,
         popupConfig: popupConfig,
         clearButtonConfig: clearButtonConfig,
+        dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
         isOptionEqualToValue: isOptionEqualToValue,
         decoration: decoration,
@@ -108,6 +112,8 @@ class AutocompleteField<T> extends StatelessWidget {
     AutocompletePopupConfig popupConfig = const AutocompletePopupConfig(),
     AutocompleteClearButtonConfig clearButtonConfig =
         const AutocompleteClearButtonConfig(),
+    AutocompleteDropdownButtonConfig dropdownButtonConfig =
+        const AutocompleteDropdownButtonConfig(),
     AutocompleteSelectionConfig<T> selectionConfig =
         const AutocompleteSelectionConfig(),
     AutocompleteChipConfig<T> chipConfig = const AutocompleteChipConfig(),
@@ -132,6 +138,7 @@ class AutocompleteField<T> extends StatelessWidget {
         renderingConfig: renderingConfig,
         popupConfig: popupConfig,
         clearButtonConfig: clearButtonConfig,
+        dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
         chipConfig: chipConfig,
         isOptionEqualToValue: isOptionEqualToValue,
@@ -169,6 +176,8 @@ class AutocompleteField<T> extends StatelessWidget {
     AutocompletePopupConfig popupConfig = const AutocompletePopupConfig(),
     AutocompleteClearButtonConfig clearButtonConfig =
         const AutocompleteClearButtonConfig(),
+    AutocompleteDropdownButtonConfig dropdownButtonConfig =
+        const AutocompleteDropdownButtonConfig(),
     AutocompleteSelectionConfig<T> selectionConfig =
         const AutocompleteSelectionConfig(),
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
@@ -192,6 +201,7 @@ class AutocompleteField<T> extends StatelessWidget {
         renderingConfig: renderingConfig,
         popupConfig: popupConfig,
         clearButtonConfig: clearButtonConfig,
+        dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
         isOptionEqualToValue: isOptionEqualToValue,
         decoration: decoration,
@@ -222,6 +232,8 @@ class AutocompleteField<T> extends StatelessWidget {
     AutocompletePopupConfig popupConfig = const AutocompletePopupConfig(),
     AutocompleteClearButtonConfig clearButtonConfig =
         const AutocompleteClearButtonConfig(),
+    AutocompleteDropdownButtonConfig dropdownButtonConfig =
+        const AutocompleteDropdownButtonConfig(),
     AutocompleteSelectionConfig<T> selectionConfig =
         const AutocompleteSelectionConfig(),
     AutocompleteChipConfig<T> chipConfig = const AutocompleteChipConfig(),
@@ -246,6 +258,7 @@ class AutocompleteField<T> extends StatelessWidget {
         renderingConfig: renderingConfig,
         popupConfig: popupConfig,
         clearButtonConfig: clearButtonConfig,
+        dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
         chipConfig: chipConfig,
         isOptionEqualToValue: isOptionEqualToValue,
@@ -279,6 +292,8 @@ class AutocompleteField<T> extends StatelessWidget {
     AutocompletePopupConfig popupConfig = const AutocompletePopupConfig(),
     AutocompleteClearButtonConfig clearButtonConfig =
         const AutocompleteClearButtonConfig(),
+    AutocompleteDropdownButtonConfig dropdownButtonConfig =
+        const AutocompleteDropdownButtonConfig(),
     AutocompleteSelectionConfig<T> selectionConfig =
         const AutocompleteSelectionConfig(),
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
@@ -303,6 +318,7 @@ class AutocompleteField<T> extends StatelessWidget {
         renderingConfig: renderingConfig,
         popupConfig: popupConfig,
         clearButtonConfig: clearButtonConfig,
+        dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
         isOptionEqualToValue: isOptionEqualToValue,
         decoration: decoration,
@@ -334,6 +350,8 @@ class AutocompleteField<T> extends StatelessWidget {
     AutocompletePopupConfig popupConfig = const AutocompletePopupConfig(),
     AutocompleteClearButtonConfig clearButtonConfig =
         const AutocompleteClearButtonConfig(),
+    AutocompleteDropdownButtonConfig dropdownButtonConfig =
+        const AutocompleteDropdownButtonConfig(),
     AutocompleteSelectionConfig<T> selectionConfig =
         const AutocompleteSelectionConfig(),
     AutocompleteChipConfig<T> chipConfig = const AutocompleteChipConfig(),
@@ -359,6 +377,7 @@ class AutocompleteField<T> extends StatelessWidget {
         renderingConfig: renderingConfig,
         popupConfig: popupConfig,
         clearButtonConfig: clearButtonConfig,
+        dropdownButtonConfig: dropdownButtonConfig,
         selectionConfig: selectionConfig,
         chipConfig: chipConfig,
         isOptionEqualToValue: isOptionEqualToValue,

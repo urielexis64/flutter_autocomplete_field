@@ -3,6 +3,7 @@ export 'src/configs/autocomplete_behavior_config.dart';
 export 'src/configs/autocomplete_chip_config.dart';
 export 'src/configs/autocomplete_clear_button_config.dart';
 export 'src/configs/autocomplete_creatable_config.dart';
+export 'src/configs/autocomplete_dropdown_button_config.dart';
 export 'src/configs/autocomplete_filter_config.dart';
 export 'src/configs/autocomplete_grouping_config.dart';
 export 'src/configs/autocomplete_popup_config.dart';

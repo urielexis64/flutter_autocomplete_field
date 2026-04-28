@@ -27,6 +27,43 @@ void main() {
     expect(find.text('Banana'), findsOneWidget);
   });
 
+  testWidgets('dropdown indicator is visible by default', (tester) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana'],
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    expect(
+      find.byKey(const ValueKey<String>('autocomplete-dropdown-button')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('tapping the dropdown indicator opens the popup', (tester) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana'],
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('autocomplete-dropdown-button')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(findPopupSurface(), findsOneWidget);
+    expect(findPopupText('Apple'), findsOneWidget);
+  });
+
   testWidgets('multiple select emits selected values', (tester) async {
     var selected = <String>[];
 

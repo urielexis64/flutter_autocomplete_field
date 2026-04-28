@@ -5,6 +5,7 @@ import '../configs/autocomplete_behavior_config.dart';
 import '../configs/autocomplete_chip_config.dart';
 import '../configs/autocomplete_clear_button_config.dart';
 import '../configs/autocomplete_creatable_config.dart';
+import '../configs/autocomplete_dropdown_button_config.dart';
 import '../configs/autocomplete_filter_config.dart';
 import '../configs/autocomplete_grouping_config.dart';
 import '../configs/autocomplete_popup_config.dart';
@@ -21,6 +22,7 @@ class AutocompleteFieldConfiguration<T> {
     required this.popupConfig,
     required this.decoration,
     required this.clearButtonConfig,
+    required this.dropdownButtonConfig,
     required this.selectionConfig,
     required this.enabled,
     required this.readOnly,
@@ -48,6 +50,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompletePopupConfig popupConfig,
     required InputDecoration decoration,
     required AutocompleteClearButtonConfig clearButtonConfig,
+    required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
     required bool enabled,
     required bool readOnly,
@@ -73,6 +76,7 @@ class AutocompleteFieldConfiguration<T> {
       renderingConfig: renderingConfig,
       popupConfig: popupConfig,
       clearButtonConfig: clearButtonConfig,
+      dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
@@ -94,6 +98,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteChipConfig<T> chipConfig,
     required InputDecoration decoration,
     required AutocompleteClearButtonConfig clearButtonConfig,
+    required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
     required bool enabled,
     required bool readOnly,
@@ -117,6 +122,7 @@ class AutocompleteFieldConfiguration<T> {
       renderingConfig: renderingConfig,
       popupConfig: popupConfig,
       clearButtonConfig: clearButtonConfig,
+      dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
       chipConfig: chipConfig,
       isOptionEqualToValue: isOptionEqualToValue,
@@ -136,6 +142,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompletePopupConfig popupConfig,
     required InputDecoration decoration,
     required AutocompleteClearButtonConfig clearButtonConfig,
+    required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
     required bool enabled,
     required bool readOnly,
@@ -161,6 +168,7 @@ class AutocompleteFieldConfiguration<T> {
       renderingConfig: renderingConfig,
       popupConfig: popupConfig,
       clearButtonConfig: clearButtonConfig,
+      dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
@@ -182,6 +190,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteChipConfig<T> chipConfig,
     required InputDecoration decoration,
     required AutocompleteClearButtonConfig clearButtonConfig,
+    required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
     required bool enabled,
     required bool readOnly,
@@ -205,6 +214,7 @@ class AutocompleteFieldConfiguration<T> {
       renderingConfig: renderingConfig,
       popupConfig: popupConfig,
       clearButtonConfig: clearButtonConfig,
+      dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
       chipConfig: chipConfig,
       isOptionEqualToValue: isOptionEqualToValue,
@@ -225,6 +235,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompletePopupConfig popupConfig,
     required InputDecoration decoration,
     required AutocompleteClearButtonConfig clearButtonConfig,
+    required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
     required bool enabled,
     required bool readOnly,
@@ -251,6 +262,7 @@ class AutocompleteFieldConfiguration<T> {
       renderingConfig: renderingConfig,
       popupConfig: popupConfig,
       clearButtonConfig: clearButtonConfig,
+      dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
@@ -273,6 +285,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteChipConfig<T> chipConfig,
     required InputDecoration decoration,
     required AutocompleteClearButtonConfig clearButtonConfig,
+    required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
     required bool enabled,
     required bool readOnly,
@@ -297,6 +310,7 @@ class AutocompleteFieldConfiguration<T> {
       renderingConfig: renderingConfig,
       popupConfig: popupConfig,
       clearButtonConfig: clearButtonConfig,
+      dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,
       chipConfig: chipConfig,
       isOptionEqualToValue: isOptionEqualToValue,
@@ -324,6 +338,7 @@ class AutocompleteFieldConfiguration<T> {
   final AutocompleteRenderingConfig<T>? renderingConfig;
   final AutocompletePopupConfig popupConfig;
   final AutocompleteClearButtonConfig clearButtonConfig;
+  final AutocompleteDropdownButtonConfig dropdownButtonConfig;
   final AutocompleteSelectionConfig<T> selectionConfig;
   final AutocompleteChipConfig<T>? chipConfig;
   final AutocompleteOptionEquality<T>? isOptionEqualToValue;

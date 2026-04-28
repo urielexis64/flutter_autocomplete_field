@@ -16,7 +16,7 @@ InputDecoration mergeAutocompleteSuffixIcon(
   return decoration.copyWith(
     suffixIcon: Row(
       mainAxisSize: MainAxisSize.min,
-      children: [existingSuffixIcon, suffixIcon],
+      children: [suffixIcon, existingSuffixIcon],
     ),
   );
 }

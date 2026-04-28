@@ -98,7 +98,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
             autofocus: widget.configuration.autofocus,
             chipConfig: widget.configuration.chipConfig!,
             renderingConfig: widget.configuration.renderingConfig,
-            suffixIcon: _buildClearButton(),
+            suffixIcon: _buildTrailingButtons(),
             onChanged: _handleInputChanged,
           )
         : SingleAutocompleteInput<T>(
@@ -109,7 +109,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
             readOnly: widget.configuration.readOnly,
             autofocus: widget.configuration.autofocus,
             onChanged: _handleInputChanged,
-            suffixIcon: _buildClearButton(),
+            suffixIcon: _buildTrailingButtons(),
             selectedValue: _selectedValue,
             selectedLabel: _selectedValue == null
                 ? null
@@ -655,6 +655,37 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     );
   }
 
+  Widget? _buildDropdownButton() {
+    if (!_config.dropdownButtonConfig.enabled || !_config.enabled) {
+      return null;
+    }
+
+    return IconButton(
+      key: const ValueKey<String>('autocomplete-dropdown-button'),
+      tooltip: _config.dropdownButtonConfig.tooltip,
+      onPressed: _handleDropdownButtonPressed,
+      icon: _isOpen
+          ? _config.dropdownButtonConfig.openIcon
+          : _config.dropdownButtonConfig.closedIcon,
+    );
+  }
+
+  Widget? _buildTrailingButtons() {
+    final clearButton = _buildClearButton();
+    final dropdownButton = _buildDropdownButton();
+    if (clearButton == null && dropdownButton == null) {
+      return null;
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (clearButton != null) clearButton,
+        if (dropdownButton != null) dropdownButton,
+      ],
+    );
+  }
+
   bool get _hasContentToClear {
     if (_controller.text.isNotEmpty) {
       return true;
@@ -663,5 +694,21 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return _selectedValues.isNotEmpty;
     }
     return _selectedValue != null;
+  }
+
+  void _handleDropdownButtonPressed() {
+    if (!_focusNode.hasFocus) {
+      _focusNode.requestFocus();
+    }
+
+    if (_config.isAsync &&
+        _config.asyncConfig!.loadOnFocus &&
+        _controller.text.isEmpty &&
+        _asyncOptions.isEmpty) {
+      _requestAsyncOptions(immediate: true);
+    }
+
+    _openPopup();
+    _syncOverlayVisibility(forceOpen: true);
   }
 }
