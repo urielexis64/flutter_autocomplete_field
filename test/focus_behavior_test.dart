@@ -117,4 +117,47 @@ void main() {
 
     expect(scrollbar.padding, EdgeInsets.zero);
   });
+
+  testWidgets(
+    'popup stays within viewport when space is limited above and below',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 220);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                const SizedBox(height: 88),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: AutocompleteField<String>.single(
+                    options: List<String>.generate(
+                      24,
+                      (index) => 'Option $index',
+                    ),
+                    getOptionLabel: (option) => option,
+                    popupConfig: const AutocompletePopupConfig(maxHeight: 180),
+                    decoration: const InputDecoration(labelText: 'Fruit'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      final popupTop = tester.getTopLeft(findPopupSurface()).dy;
+      final popupBottom = tester.getBottomLeft(findPopupSurface()).dy;
+      final viewportHeight = tester.getSize(find.byType(Scaffold)).height;
+
+      expect(popupTop, greaterThanOrEqualTo(0));
+      expect(popupBottom, lessThanOrEqualTo(viewportHeight));
+    },
+  );
 }

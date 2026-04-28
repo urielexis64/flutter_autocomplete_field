@@ -3,10 +3,25 @@ import 'package:flutter/material.dart';
 import '../async/async_options_controller.dart';
 import '../chips/autocomplete_chip_wrap.dart';
 import '../configs/autocomplete_creatable_config.dart';
+import '../configs/autocomplete_popup_config.dart';
 import '../filtering/default_filter.dart';
 import '../popup/autocomplete_popup.dart';
 import 'autocomplete_field_configuration.dart';
 import 'single_autocomplete_input.dart';
+
+class _PopupPlacement {
+  const _PopupPlacement({
+    required this.left,
+    required this.top,
+    required this.width,
+    required this.maxHeight,
+  });
+
+  final double left;
+  final double top;
+  final double width;
+  final double maxHeight;
+}
 
 class AutocompleteFieldView<T> extends StatefulWidget {
   const AutocompleteFieldView({required this.configuration, super.key});
@@ -129,27 +144,35 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
           return const SizedBox.shrink();
         }
 
-        final popupWidth =
+        final configuredWidth =
             widget.configuration.popupConfig.width ?? _fieldWidth;
-        final popupOffset = widget.configuration.popupConfig.offset;
+        final placement = _resolvePopupPlacement(
+          overlayContext: context,
+          targetRect: targetRect,
+          configuredWidth: configuredWidth,
+        );
+        if (placement == null) {
+          return const SizedBox.shrink();
+        }
+        final popupConfig = _resolvedPopupConfig(placement.maxHeight);
 
         return Stack(
           children: [
             Positioned(
-              left: targetRect.left + popupOffset.dx,
-              top: targetRect.bottom + popupOffset.dy,
-              width: popupWidth,
+              left: placement.left,
+              top: placement.top,
+              width: placement.width,
               child: TapRegion(
                 groupId: _tapRegionGroupId,
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: popupWidth ?? 320),
+                  constraints: BoxConstraints(maxWidth: placement.width),
                   child: AutocompletePopup<T>(
                     options: _visibleOptions,
                     query: _controller.text,
                     getOptionLabel: widget.configuration.getOptionLabel,
                     isSelected: _isOptionSelected,
                     onOptionTap: _selectOption,
-                    popupConfig: widget.configuration.popupConfig,
+                    popupConfig: popupConfig,
                     selectionConfig: widget.configuration.selectionConfig,
                     groupingConfig: widget.configuration.groupingConfig,
                     renderingConfig: widget.configuration.renderingConfig,
@@ -176,6 +199,19 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         onTapOutside: (_) => _handleTapOutside(),
         child: Container(key: _fieldKey, child: field),
       ),
+    );
+  }
+
+  AutocompletePopupConfig _resolvedPopupConfig(double maxHeight) {
+    final current = widget.configuration.popupConfig;
+    return AutocompletePopupConfig(
+      maxHeight: maxHeight,
+      width: current.width,
+      elevation: current.elevation,
+      padding: current.padding,
+      borderRadius: current.borderRadius,
+      offset: current.offset,
+      emptyStateHeight: current.emptyStateHeight,
     );
   }
 
@@ -608,6 +644,73 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       ancestor: overlayRenderObject,
     );
     return origin & fieldRenderObject.size;
+  }
+
+  _PopupPlacement? _resolvePopupPlacement({
+    required BuildContext overlayContext,
+    required Rect targetRect,
+    required double? configuredWidth,
+  }) {
+    final overlayRenderObject =
+        Overlay.of(overlayContext).context.findRenderObject();
+    if (overlayRenderObject is! RenderBox) {
+      return null;
+    }
+
+    final mediaQuery = MediaQuery.maybeOf(overlayContext);
+    const viewportMargin = 4.0;
+    final safeTop = (mediaQuery?.padding.top ?? 0) + viewportMargin;
+    final safeBottom = overlayRenderObject.size.height -
+        (mediaQuery?.viewInsets.bottom ?? 0) -
+        viewportMargin;
+    if (safeBottom <= safeTop) {
+      return null;
+    }
+
+    final popupWidth = configuredWidth ??
+        targetRect.width.clamp(0, overlayRenderObject.size.width).toDouble();
+    final maxAllowedWidth =
+        (overlayRenderObject.size.width - (viewportMargin * 2))
+            .clamp(0, double.infinity)
+            .toDouble();
+    final width = popupWidth.clamp(0, maxAllowedWidth).toDouble();
+    if (width <= 0) {
+      return null;
+    }
+
+    final requestedMaxHeight = _config.popupConfig.maxHeight;
+    final verticalGap = _config.popupConfig.offset.dy.abs();
+    final belowStart = targetRect.bottom + verticalGap;
+    final aboveEnd = targetRect.top - verticalGap;
+    final availableBelow = (safeBottom - belowStart).clamp(0, double.infinity);
+    final availableAbove = (aboveEnd - safeTop).clamp(0, double.infinity);
+
+    final prefersBelow = availableBelow >= requestedMaxHeight ||
+        availableBelow >= availableAbove;
+    final availableOnSide =
+        (prefersBelow ? availableBelow : availableAbove).toDouble();
+    final maxHeight = requestedMaxHeight.clamp(0, availableOnSide).toDouble();
+    if (maxHeight <= 0) {
+      return null;
+    }
+
+    final top =
+        prefersBelow ? belowStart : targetRect.top - verticalGap - maxHeight;
+    final clampedTop = top.clamp(safeTop, safeBottom - maxHeight).toDouble();
+
+    final requestedLeft = targetRect.left + _config.popupConfig.offset.dx;
+    final maxLeft = overlayRenderObject.size.width - viewportMargin - width;
+    final clampedLeft = requestedLeft
+        .clamp(
+            viewportMargin, maxLeft < viewportMargin ? viewportMargin : maxLeft)
+        .toDouble();
+
+    return _PopupPlacement(
+      left: clampedLeft,
+      top: clampedTop,
+      width: width,
+      maxHeight: maxHeight,
+    );
   }
 
   bool _didExternalSelectionChange(
