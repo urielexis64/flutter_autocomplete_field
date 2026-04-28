@@ -19,7 +19,6 @@ class AutocompleteFieldView<T> extends StatefulWidget {
 }
 
 class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
-  final LayerLink _layerLink = LayerLink();
   final OverlayPortalController _overlayController = OverlayPortalController();
   final GlobalKey _fieldKey = GlobalKey();
   final Object _tapRegionGroupId = Object();
@@ -125,26 +124,25 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         if (!_shouldRenderPopup) {
           return const SizedBox.shrink();
         }
-        return Align(
-          alignment: Alignment.topLeft,
-          widthFactor: 1,
-          heightFactor: 1,
-          child: TapRegion(
-            groupId: _tapRegionGroupId,
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              showWhenUnlinked: false,
-              targetAnchor: Alignment.bottomLeft,
-              followerAnchor: Alignment.topLeft,
-              offset: widget.configuration.popupConfig.offset,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: widget.configuration.popupConfig.width ??
-                      _fieldWidth ??
-                      320,
-                ),
-                child: SizedBox(
-                  width: widget.configuration.popupConfig.width ?? _fieldWidth,
+        final targetRect = _resolveTargetRect(context);
+        if (targetRect == null) {
+          return const SizedBox.shrink();
+        }
+
+        final popupWidth =
+            widget.configuration.popupConfig.width ?? _fieldWidth;
+        final popupOffset = widget.configuration.popupConfig.offset;
+
+        return Stack(
+          children: [
+            Positioned(
+              left: targetRect.left + popupOffset.dx,
+              top: targetRect.bottom + popupOffset.dy,
+              width: popupWidth,
+              child: TapRegion(
+                groupId: _tapRegionGroupId,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: popupWidth ?? 320),
                   child: AutocompletePopup<T>(
                     options: _visibleOptions,
                     query: _controller.text,
@@ -170,16 +168,13 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
                 ),
               ),
             ),
-          ),
+          ],
         );
       },
       child: TapRegion(
         groupId: _tapRegionGroupId,
         onTapOutside: (_) => _handleTapOutside(),
-        child: CompositedTransformTarget(
-          link: _layerLink,
-          child: Container(key: _fieldKey, child: field),
-        ),
+        child: Container(key: _fieldKey, child: field),
       ),
     );
   }
@@ -593,6 +588,26 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         _fieldWidth = width;
       });
     }
+  }
+
+  Rect? _resolveTargetRect(BuildContext overlayContext) {
+    final fieldContext = _fieldKey.currentContext;
+    if (fieldContext == null) {
+      return null;
+    }
+
+    final overlayRenderObject =
+        Overlay.of(overlayContext).context.findRenderObject();
+    final fieldRenderObject = fieldContext.findRenderObject();
+    if (overlayRenderObject is! RenderBox || fieldRenderObject is! RenderBox) {
+      return null;
+    }
+
+    final origin = fieldRenderObject.localToGlobal(
+      Offset.zero,
+      ancestor: overlayRenderObject,
+    );
+    return origin & fieldRenderObject.size;
   }
 
   bool _didExternalSelectionChange(
