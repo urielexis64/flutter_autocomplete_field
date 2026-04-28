@@ -1,0 +1,1 @@
+enum AutocompleteSelectionMode { single, multiple }

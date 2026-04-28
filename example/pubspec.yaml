@@ -3,7 +3,7 @@ description: Example app for the flutter_autocomplete package.
 publish_to: none
 
 environment:
-  sdk: ^3.9.2
+  sdk: ^3.8.1
 
 dependencies:
   flutter:

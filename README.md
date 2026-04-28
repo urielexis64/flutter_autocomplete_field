@@ -1,32 +1,75 @@
 # flutter_autocomplete
 
-A reusable Flutter autocomplete field inspired by MUI's React Autocomplete.
+`flutter_autocomplete` is a mobile-first autocomplete package for Flutter.
 
-The widget is a normal text input enhanced by an anchored options panel. It supports combo-box selection from predefined options and `freeSolo` text entry, with separate selected value and input text state, multiple selection, chips, grouping, async loading, custom filtering, custom rendering, disabled options, keyboard navigation, and large-list virtualization.
+The package focuses on:
 
-Reference behavior: [MUI Autocomplete docs](https://mui.com/material-ui/react-autocomplete/).
+- focused constructors instead of one giant widget API
+- chip-based multiple selection that works with the virtual keyboard
+- visual grouping that stays separate from selection logic
+- creatable flows that generate typed values instead of selecting raw text
+- no physical keyboard navigation
+- no desktop shortcut handling
+- no virtualized lists
 
-## Local Usage
-
-From another package in this workspace:
+## Installation
 
 ```yaml
 dependencies:
-  flutter_autocomplete:
-    path: ../flutter_autocomplete
+  flutter_autocomplete: ^0.0.1
 ```
-
-Then import:
 
 ```dart
 import 'package:flutter_autocomplete/flutter_autocomplete.dart';
 ```
 
-## Basic Example
+## Quick Start
 
 ```dart
-AutocompleteField<String>.comboBox(
-  options: const ['The Godfather', 'Pulp Fiction', 'Inception'],
+AutocompleteField<String>.single(
+  options: const ['Apple', 'Banana', 'Cherry'],
+  getOptionLabel: (option) => option,
+  decoration: const InputDecoration(
+    labelText: 'Fruit',
+    border: OutlineInputBorder(),
+  ),
+)
+```
+
+## Constructor Guide
+
+All modes are exposed through explicit constructors:
+
+- `AutocompleteField.single<T>()`
+- `AutocompleteField.multiple<T>()`
+- `AutocompleteField.async<T>()`
+- `AutocompleteField.asyncMultiple<T>()`
+- `AutocompleteField.creatable<T>()`
+- `AutocompleteField.creatableMultiple<T>()`
+
+Grouping is not a mode. Add `groupingConfig` to any constructor when you want grouped rendering.
+
+## Mode Comparison
+
+| Constructor | Selection | Data Source | Creation |
+| --- | --- | --- | --- |
+| `single` | one value | sync list | no |
+| `multiple` | many values | sync list | no |
+| `async` | one value | async loader | no |
+| `asyncMultiple` | many values | async loader | no |
+| `creatable` | one value | sync list | yes |
+| `creatableMultiple` | many values | sync list | yes |
+
+## Examples
+
+### Single Select
+
+```dart
+AutocompleteField<Movie>.single(
+  options: movies,
+  value: selectedMovie,
+  onChanged: (movie) => setState(() => selectedMovie = movie),
+  getOptionLabel: (movie) => movie.title,
   decoration: const InputDecoration(
     labelText: 'Movie',
     border: OutlineInputBorder(),
@@ -34,174 +77,158 @@ AutocompleteField<String>.comboBox(
 )
 ```
 
-Object options should provide a label, stable key when labels can repeat, and equality logic when identity is not enough:
+### Multiple Select
 
 ```dart
-AutocompleteField<Movie>(
-  options: movies,
-  getOptionLabel: (movie) => movie.title,
-  getOptionKey: (movie) => movie.id,
-  isOptionEqualToValue: (option, value) => option.id == value.id,
+AutocompleteField<String>.multiple(
+  options: const ['Apple', 'Banana', 'Cherry', 'Dragonfruit'],
+  values: selectedFruits,
+  onChanged: (values) => setState(() => selectedFruits = values),
+  getOptionLabel: (option) => option,
+  decoration: const InputDecoration(
+    labelText: 'Fruits',
+    border: OutlineInputBorder(),
+  ),
 )
 ```
 
-## API Overview
+### Async
 
-`AutocompleteField<T>` is generic over the option type.
+```dart
+AutocompleteField<String>.async(
+  asyncConfig: AutocompleteAsyncConfig(
+    optionsBuilder: repository.searchCities,
+    debounceDuration: const Duration(milliseconds: 250),
+    minQueryLength: 2,
+  ),
+  getOptionLabel: (option) => option,
+  decoration: const InputDecoration(
+    labelText: 'City',
+    border: OutlineInputBorder(),
+  ),
+)
+```
 
-Focused constructors are available for common modes:
+### Creatable
 
-- `AutocompleteField<T>.comboBox(...)` for single selection from known options.
-- `AutocompleteField<T>.multiple(...)` for chip/tag selection with `values`.
-- `AutocompleteField<T>.freeSolo(...)` for arbitrary text entry. Prefer `AutocompleteField<String>.freeSolo`.
-- `AutocompleteField<T>.async(...)` for load-on-open or search-as-you-type option loading.
+```dart
+AutocompleteField<Tag>.creatable(
+  options: tags,
+  value: selectedTag,
+  onChanged: (tag) => setState(() => selectedTag = tag),
+  getOptionLabel: (tag) => tag.label,
+  creatableConfig: AutocompleteCreatableConfig<Tag>(
+    createOption: (input) => Tag(label: input),
+  ),
+  decoration: const InputDecoration(
+    labelText: 'Tag',
+    border: OutlineInputBorder(),
+  ),
+)
+```
 
-The default `AutocompleteField<T>(...)` constructor remains available for advanced combinations, but the factories intentionally omit fields that do not belong to that mode.
+## Grouping
 
-Core state:
+Grouping changes popup rendering only. It does not change selection, equality, or stored values.
 
-- `value` and `onChanged` control the selected single value.
-- `values` and `onValuesChanged` control selected values in `multiple` mode.
-- `inputValue` and `onInputChanged` control the text shown in the field.
-- `defaultValue` and `defaultValues` seed uncontrolled selections.
+```dart
+AutocompleteField<City>.single(
+  options: cities,
+  getOptionLabel: (city) => city.name,
+  groupingConfig: AutocompleteGroupingConfig<City>(
+    groupBy: (city) => city.country,
+    sortGroups: true,
+    stickyHeaders: true,
+  ),
+)
+```
 
-Option behavior:
+Creatable rows are rendered outside groups, so the synthetic create action stays distinct from grouped options.
 
-- `getOptionLabel` controls displayed text.
-- `getOptionKey` gives duplicate-label options stable identity.
-- `isOptionEqualToValue` handles object equality.
-- `getOptionDisabled` leaves options visible but unselectable.
-- `groupBy` coalesces matching group values with sticky headers by default, even when options are not pre-sorted.
-- `groupBuilder` customizes group headers. When sticky headers are enabled it receives an empty `children` list because option rows are rendered in separate slivers.
-- `filterOptions` replaces the default filter. Use `identityAutocompleteFilter` for server-filtered async results.
+## Custom Filtering
 
-Rendering:
+```dart
+AutocompleteField<Movie>.single(
+  options: movies,
+  getOptionLabel: (movie) => movie.title,
+  filterConfig: AutocompleteFilterConfig<Movie>(
+    matchFrom: AutocompleteMatchFrom.start,
+    limit: 20,
+    stringify: (movie) => '${movie.title} ${movie.director}',
+  ),
+)
+```
 
-- `optionBuilder` customizes rows.
-- `groupBuilder` customizes grouped headers or full grouped sections when sticky headers are disabled.
-- `selectedItemBuilder` and `selectedItemsBuilder` customize selected values and chips.
-- `chipBuilder` customizes individual multiple-selection chips.
-- `chipLayout`, `chipMinInputWidth`, and `chipMaxWidth` control how selected chips share space with the input and suffix buttons.
-- `AutocompleteThemeData` customizes popup, rows, and chip styling.
+When async results are already filtered by the server, provide `filterOptions` and return the input list unchanged.
 
-Multiple-selection chips are constrained before the suffix controls by default, so long selected labels should not cover the clear/dropdown buttons. Tapping the chip area also focuses the field.
-In multiple mode, selecting an option keeps the input focused and the popup open when `blurOnSelect` is `false`.
+## Custom Rendering
 
 ```dart
 AutocompleteField<String>.multiple(
   options: const ['Apple', 'Banana', 'Cherry'],
-  chipLayout: AutocompleteChipLayout.horizontalScroll,
-  chipMinInputWidth: 120,
-  chipLabelMaxWidth: 96,
-  chipBackgroundColor: Colors.blueGrey.shade50,
-  chipBuilder: (context, value, state) {
-    return InputChip(
-      label: Text(value),
-      onDeleted: state.onRemove,
-    );
-  },
+  getOptionLabel: (option) => option,
+  renderingConfig: AutocompleteRenderingConfig<String>(
+    optionBuilder: (context, option) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Expanded(child: Text(option.label)),
+            if (option.isSelected) const Icon(Icons.check, size: 18),
+          ],
+        ),
+      );
+    },
+  ),
 )
 ```
 
-## MUI Prop Mapping
+## Theming
 
-| MUI concept | Flutter equivalent |
-| --- | --- |
-| `options` | `options` |
-| `value` / `onChange` | `value` / `onChanged` |
-| `inputValue` / `onInputChange` | `inputValue` / `onInputChanged` |
-| `multiple` | `multiple` |
-| `freeSolo` | `freeSolo` |
-| `getOptionLabel` | `getOptionLabel` |
-| `getOptionKey` | `getOptionKey` |
-| `isOptionEqualToValue` | `isOptionEqualToValue` |
-| `getOptionDisabled` | `getOptionDisabled` |
-| `groupBy` / `renderGroup` | `groupBy` / `groupBuilder` |
-| sticky grouped headers | `stickyGroupHeaders`, `groupHeaderHeight` |
-| `filterOptions` | `filterOptions` |
-| `createFilterOptions` | `createAutocompleteFilter` |
-| `filterSelectedOptions` | `filterSelectedOptions` |
-| `renderOption` | `optionBuilder` |
-| `renderValue` | `selectedItemBuilder`, `selectedItemsBuilder` |
-| `limitTags` | `limitTags` |
-| `size="small"` | `size: AutocompleteSize.small` |
-| `disableClearable` | `disableClearable` |
-| `clearOnEscape` | `clearOnEscape` |
-| `openOnFocus` | `openOnFocus` |
-| `autoHighlight` | `autoHighlight` |
-| `autoSelect` | `autoSelect` |
-| `disableCloseOnSelect` | `disableCloseOnSelect` |
-| `includeInputInList` | `includeInputInList` |
-| `disableListWrap` | `disableListWrap` |
-| `blurOnSelect` | `blurOnSelect` |
-| `clearOnBlur` | `clearOnBlur` |
-| `selectOnFocus` | `selectOnFocus` |
-| `handleHomeEndKeys` | `handleHomeEndKeys` |
-| async load on open | `loadOptionsOnOpen` |
-| search as you type | `asyncOptionsBuilder` or external debounced `onInputChanged` |
-| virtualized listbox | `virtualized: true` |
+The package intentionally leans on Flutter theming primitives:
 
-## Filtering
-
-`createAutocompleteFilter<T>()` mirrors MUI's `createFilterOptions` knobs:
-
-```dart
-final filter = createAutocompleteFilter<Movie>(
-  ignoreAccents: true,
-  ignoreCase: true,
-  limit: 100,
-  matchFrom: AutocompleteFilterMatchFrom.start,
-  stringify: (movie) => movie.title,
-  trim: true,
-);
-```
-
-Defaults are MUI-compatible: accents and case are ignored, matching is anywhere, `limit` is null, and `trim` is false.
-
-## Advanced Examples
-
-See `example/lib/examples` for demos covering:
-
-- Basic combo box
-- Object options with stable keys and custom equality
-- Free solo search input
-- Creatable "Add query" option
-- Grouped options
-- Disabled options
-- Multiple selection with chips
-- Fixed chips that cannot be removed
-- Selection indicators
-- `limitTags`
-- Small size variant
-- Async load on open
-- Debounced search as you type
-- Custom option rendering with highlighted text
-- Custom filter matching from the start
-- 10,000-option virtualized list
-
-Run the example from the `example` directory:
-
-```sh
-fvm flutter run
-```
+- use `InputDecoration` for the field container and labels
+- use `AutocompletePopupConfig` for popup size and surface styling
+- use `AutocompleteChipConfig` for chip spacing, limits, and delete affordances
+- use `AutocompleteRenderingConfig` when you need fully custom rows or chips
 
 ## Accessibility Notes
 
-The widget adds Flutter `Semantics` for the text field, expanded/collapsed hint, option selected state, disabled state, popup label, and chip delete affordances.
+- The package uses Flutter text field, chip, and tap semantics instead of web ARIA roles.
+- Group headers are visual only.
+- Creatable rows are explicit actions, not implicit raw-text selections.
+- Keyboard shortcuts and arrow-key navigation are intentionally unsupported.
 
-Flutter does not expose a one-to-one WAI-ARIA combobox/listbox role API like the web. This package follows the intent of the [WAI-ARIA combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/) where Flutter semantics supports it, while relying on platform text field and focus semantics for native assistive technology behavior.
+## Mobile Behavior Notes
 
-## Known Differences From React/MUI
+- Tapping the field focuses the input.
+- Tapping an option selects it.
+- Tapping a creatable row creates a new typed value and selects it.
+- Tapping outside the field closes the popup.
+- The package is designed for virtual-keyboard-first layouts.
 
-- Free-solo committed values are strings in MUI. In Dart, this package can commit typed free-solo text only when `T` can accept `String`, usually `AutocompleteField<String>`.
-- Flutter overlays and semantics are platform-native, not DOM portals and ARIA attributes.
-- `includeInputInList` is approximated for keyboard navigation by allowing the highlight to return to no option.
-- Custom selected-value rendering is Flutter widget based. Builders receive remove callbacks instead of MUI's `getItemProps`.
-- Virtualization uses Flutter's `ListView.builder`; fixed row heights are recommended for the smoothest large-list behavior.
+## Layout Notes
 
-## Assumptions and Limitations
+Multiple mode uses:
 
-- Grouping coalesces identical group keys and preserves the order in which each group first appears. Sorting by the grouping dimension is still recommended when you want predictable alphabetical/group order.
-- `loadOptionsOnOpen` runs once per controller lifetime.
-- Click-away closing is handled through focus loss; apps with unusual focus management may want to close the field explicitly by moving focus.
-- Browser autofill limitations from MUI do not apply directly to Flutter, but platform text autofill can still affect UX depending on app configuration.
+- `InputDecorator` as the outer field container
+- a `Wrap` for chips and the text input
+- a borderless inner `TextField`
+
+This allows:
+
+- vertical growth instead of overflow
+- label floating based on focus, chips, and input text
+- tap-anywhere focusing
+- mobile-friendly chip entry without `prefix` or `prefixIcon`
+
+## No Keyboard Support
+
+This package does not implement:
+
+- physical keyboard shortcuts
+- arrow key navigation
+- enter or escape handling
+- home or end handling
+- desktop-specific interaction patterns
+- virtualized option rendering
