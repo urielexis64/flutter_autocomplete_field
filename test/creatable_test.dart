@@ -10,7 +10,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       buildTestApp(
-        AutocompleteField<String>.creatable(
+        AutocompleteField<String>.single(
           options: const ['Apple', 'Banana'],
           getOptionLabel: (option) => option,
           creatableConfig: const AutocompleteCreatableConfig<String>(
@@ -32,7 +32,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       buildTestApp(
-        AutocompleteField<String>.creatable(
+        AutocompleteField<String>.single(
           options: const ['Apple', 'Banana'],
           getOptionLabel: (option) => option,
           creatableConfig: const AutocompleteCreatableConfig<String>(
@@ -54,7 +54,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       buildTestApp(
-        AutocompleteField<String>.creatableMultiple(
+        AutocompleteField<String>.multiple(
           options: const ['Apple', 'Banana'],
           values: const ['Mango'],
           getOptionLabel: (option) => option,
@@ -96,6 +96,34 @@ void main() {
 
     expect(selected?.label, 'Gamma');
     expect(find.text('Gamma'), findsOneWidget);
+  });
+
+  testWidgets('async constructor supports creatable values', (tester) async {
+    String? selected;
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.async(
+          asyncConfig: AutocompleteAsyncConfig<String>(
+            optionsBuilder: (query) async => const ['Apple', 'Banana'],
+            debounceDuration: Duration.zero,
+          ),
+          onChanged: (value) => selected = value,
+          getOptionLabel: (option) => option,
+          creatableConfig: const AutocompleteCreatableConfig<String>(
+            createOption: _identity,
+          ),
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'Mango');
+    await tester.pumpAndSettle();
+    await selectCreateOption(tester, 'Mango');
+
+    expect(selected, 'Mango');
+    expect(find.text('Mango'), findsOneWidget);
   });
 }
 

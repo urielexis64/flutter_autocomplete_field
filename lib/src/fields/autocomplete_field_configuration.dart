@@ -63,6 +63,7 @@ class AutocompleteFieldConfiguration<T> {
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
+    AutocompleteCreatableConfig<T>? creatableConfig,
     T? value,
     ValueChanged<T?>? onChanged,
     AutocompleteGroupingConfig<T>? groupingConfig,
@@ -77,6 +78,7 @@ class AutocompleteFieldConfiguration<T> {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.single,
       options: options,
+      creatableConfig: creatableConfig,
       value: value,
       onChanged: onChanged,
       getOptionLabel: getOptionLabel,
@@ -117,6 +119,7 @@ class AutocompleteFieldConfiguration<T> {
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
+    AutocompleteCreatableConfig<T>? creatableConfig,
     AutocompleteGroupingConfig<T>? groupingConfig,
     AutocompleteFilterConfig<T>? filterConfig,
     AutocompleteRenderingConfig<T>? renderingConfig,
@@ -129,6 +132,7 @@ class AutocompleteFieldConfiguration<T> {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.multiple,
       options: options,
+      creatableConfig: creatableConfig,
       values: values,
       onValuesChanged: onValuesChanged,
       getOptionLabel: getOptionLabel,
@@ -167,6 +171,7 @@ class AutocompleteFieldConfiguration<T> {
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
+    AutocompleteCreatableConfig<T>? creatableConfig,
     T? value,
     ValueChanged<T?>? onChanged,
     AutocompleteGroupingConfig<T>? groupingConfig,
@@ -181,6 +186,7 @@ class AutocompleteFieldConfiguration<T> {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.single,
       asyncConfig: asyncConfig,
+      creatableConfig: creatableConfig,
       value: value,
       onChanged: onChanged,
       getOptionLabel: getOptionLabel,
@@ -221,6 +227,7 @@ class AutocompleteFieldConfiguration<T> {
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
+    AutocompleteCreatableConfig<T>? creatableConfig,
     AutocompleteGroupingConfig<T>? groupingConfig,
     AutocompleteFilterConfig<T>? filterConfig,
     AutocompleteRenderingConfig<T>? renderingConfig,
@@ -233,6 +240,7 @@ class AutocompleteFieldConfiguration<T> {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.multiple,
       asyncConfig: asyncConfig,
+      creatableConfig: creatableConfig,
       values: values,
       onValuesChanged: onValuesChanged,
       getOptionLabel: getOptionLabel,

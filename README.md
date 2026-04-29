@@ -75,21 +75,15 @@ All modes are exposed through explicit constructors:
 - `AutocompleteField.multiple<T>()`
 - `AutocompleteField.async<T>()`
 - `AutocompleteField.asyncMultiple<T>()`
-- `AutocompleteField.creatable<T>()`
-- `AutocompleteField.creatableMultiple<T>()`
-
-Grouping is not a mode. Add `groupingConfig` to any constructor when you want grouped rendering.
 
 ## Mode Comparison
 
 | Constructor | Selection | Data Source | Creation |
 | --- | --- | --- | --- |
-| `single` | one value | sync list | no |
-| `multiple` | many values | sync list | no |
-| `async` | one value | async loader | no |
-| `asyncMultiple` | many values | async loader | no |
-| `creatable` | one value | sync list | yes |
-| `creatableMultiple` | many values | sync list | yes |
+| `single` | one value | sync list | optional via `creatableConfig` |
+| `multiple` | many values | sync list | optional via `creatableConfig` |
+| `async` | one value | async loader | optional via `creatableConfig` |
+| `asyncMultiple` | many values | async loader | optional via `creatableConfig` |
 
 ## Examples
 
@@ -135,24 +129,6 @@ AutocompleteField<String>.async(
   getOptionLabel: (option) => option,
   decoration: const InputDecoration(
     labelText: 'City',
-    border: OutlineInputBorder(),
-  ),
-)
-```
-
-### Creatable
-
-```dart
-AutocompleteField<Tag>.creatable(
-  options: tags,
-  value: selectedTag,
-  onChanged: (tag) => setState(() => selectedTag = tag),
-  getOptionLabel: (tag) => tag.label,
-  creatableConfig: AutocompleteCreatableConfig<Tag>(
-    createOption: (input) => Tag(label: input),
-  ),
-  decoration: const InputDecoration(
-    labelText: 'Tag',
     border: OutlineInputBorder(),
   ),
 )

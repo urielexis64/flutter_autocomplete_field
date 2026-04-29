@@ -221,7 +221,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     if (_config.isAsync) {
       return _asyncOptions;
     }
-    return <T>[...?_config.options, ..._createdOptions];
+    return <T>[...?_config.options];
   }
 
   List<T> get _visibleOptions {
@@ -463,7 +463,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     final created = creatable.createOption(input);
     if (!_matchesOption(created, _allOptions)) {
       setState(() {
-        _createdOptions = [..._createdOptions, created];
+        _createdOptions = {..._createdOptions, created}.toList();
       });
     }
 

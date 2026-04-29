@@ -169,7 +169,7 @@ class AutocompletePopup<T> extends StatelessWidget {
       }
     }
 
-    if (createInput != null) {
+    if (createInput != null && options.isEmpty) {
       slivers.add(
         SliverToBoxAdapter(
           child: PopupOptionTile<String>(
