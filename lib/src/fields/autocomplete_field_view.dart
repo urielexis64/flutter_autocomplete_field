@@ -214,6 +214,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       offset: current.offset,
       emptyStateHeight: current.emptyStateHeight,
       backgroundColor: current.backgroundColor,
+      heightAnimationDuration: current.heightAnimationDuration,
     );
   }
 

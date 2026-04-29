@@ -54,6 +54,14 @@ class AutocompletePopup<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final child = isLoading ? _buildLoading(context) : _buildContent(context);
+    final animatedChild = popupConfig.heightAnimationDuration == Duration.zero
+        ? child
+        : AnimatedSize(
+            duration: popupConfig.heightAnimationDuration,
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: child,
+          );
 
     return Material(
       key: const ValueKey<String>('autocomplete-popup-surface'),
@@ -69,7 +77,7 @@ class AutocompletePopup<T> extends StatelessWidget {
         ),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: popupConfig.maxHeight),
-          child: child,
+          child: animatedChild,
         ),
       ),
     );

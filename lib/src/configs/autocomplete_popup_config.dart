@@ -11,6 +11,7 @@ class AutocompletePopupConfig {
     this.offset = const Offset(0, 8),
     this.emptyStateHeight = 72,
     this.backgroundColor,
+    this.heightAnimationDuration = const Duration(milliseconds: 180),
   });
 
   final double maxHeight;
@@ -21,4 +22,5 @@ class AutocompletePopupConfig {
   final Offset offset;
   final double emptyStateHeight;
   final Color? backgroundColor;
+  final Duration heightAnimationDuration;
 }

@@ -118,6 +118,63 @@ void main() {
     expect(scrollbar.padding, EdgeInsets.zero);
   });
 
+  testWidgets('popup height animation uses configured duration',
+      (tester) async {
+    const animationDuration = Duration(milliseconds: 320);
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana', 'Cherry'],
+          getOptionLabel: (option) => option,
+          popupConfig: const AutocompletePopupConfig(
+            heightAnimationDuration: animationDuration,
+          ),
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+
+    final animatedSize = tester.widget<AnimatedSize>(
+      find.descendant(
+        of: findPopupSurface(),
+        matching: find.byType(AnimatedSize),
+      ),
+    );
+    expect(animatedSize.duration, animationDuration);
+  });
+
+  testWidgets('popup supports disabling height animation', (tester) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana', 'Cherry'],
+          getOptionLabel: (option) => option,
+          popupConfig: const AutocompletePopupConfig(
+            heightAnimationDuration: Duration.zero,
+          ),
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+
+    expect(findPopupSurface(), findsOneWidget);
+    expect(findPopupText('Apple'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: findPopupSurface(),
+        matching: find.byType(AnimatedSize),
+      ),
+      findsNothing,
+    );
+  });
+
   testWidgets('empty popup is shown when there are no matching options', (
     tester,
   ) async {
