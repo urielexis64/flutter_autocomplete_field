@@ -10,6 +10,7 @@ class AutocompletePopupConfig {
     this.borderRadius = const BorderRadius.all(Radius.circular(16)),
     this.offset = const Offset(0, 8),
     this.emptyStateHeight = 72,
+    this.backgroundColor,
   });
 
   final double maxHeight;
@@ -19,4 +20,5 @@ class AutocompletePopupConfig {
   final BorderRadius borderRadius;
   final Offset offset;
   final double emptyStateHeight;
+  final Color? backgroundColor;
 }

@@ -11,6 +11,7 @@ class AutocompleteFilterConfig<T> {
     this.limit,
     this.matchFrom = AutocompleteMatchFrom.anywhere,
     this.stringify,
+    this.enabled = false,
   }) : assert(limit == null || limit >= 0);
 
   final List<T> Function(
@@ -24,4 +25,5 @@ class AutocompleteFilterConfig<T> {
   final int? limit;
   final AutocompleteMatchFrom matchFrom;
   final AutocompleteOptionLabel<T>? stringify;
+  final bool enabled;
 }

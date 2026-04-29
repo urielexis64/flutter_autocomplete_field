@@ -48,6 +48,7 @@ class AutocompleteFieldConfiguration<T> {
     this.multipleValidator,
     this.singleOnSaved,
     this.multipleOnSaved,
+    this.isOptionDisabled,
   });
 
   factory AutocompleteFieldConfiguration.single({
@@ -74,6 +75,7 @@ class AutocompleteFieldConfiguration<T> {
     FocusNode? focusNode,
     FormFieldValidator<T?>? validator,
     FormFieldSetter<T?>? onSaved,
+    bool Function(T option)? isOptionDisabled,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.single,
@@ -100,6 +102,7 @@ class AutocompleteFieldConfiguration<T> {
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
+      isOptionDisabled: isOptionDisabled,
     );
   }
 
@@ -128,6 +131,7 @@ class AutocompleteFieldConfiguration<T> {
     FocusNode? focusNode,
     FormFieldValidator<List<T>>? validator,
     FormFieldSetter<List<T>>? onSaved,
+    bool Function(T option)? isOptionDisabled,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.multiple,
@@ -155,6 +159,7 @@ class AutocompleteFieldConfiguration<T> {
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
+      isOptionDisabled: isOptionDisabled,
     );
   }
 
@@ -182,6 +187,7 @@ class AutocompleteFieldConfiguration<T> {
     FocusNode? focusNode,
     FormFieldValidator<T?>? validator,
     FormFieldSetter<T?>? onSaved,
+    bool Function(T option)? isOptionDisabled,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.single,
@@ -208,6 +214,7 @@ class AutocompleteFieldConfiguration<T> {
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
+      isOptionDisabled: isOptionDisabled,
     );
   }
 
@@ -236,6 +243,7 @@ class AutocompleteFieldConfiguration<T> {
     FocusNode? focusNode,
     FormFieldValidator<List<T>>? validator,
     FormFieldSetter<List<T>>? onSaved,
+    bool Function(T option)? isOptionDisabled,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.multiple,
@@ -263,114 +271,7 @@ class AutocompleteFieldConfiguration<T> {
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
-    );
-  }
-
-  factory AutocompleteFieldConfiguration.creatableSingle({
-    required List<T> options,
-    required AutocompleteCreatableConfig<T> creatableConfig,
-    required AutocompleteOptionLabel<T> getOptionLabel,
-    required AutocompleteBehaviorConfig behaviorConfig,
-    required AutocompletePopupConfig popupConfig,
-    required InputDecoration decoration,
-    required AutocompleteClearButtonConfig clearButtonConfig,
-    required AutocompleteDropdownButtonConfig dropdownButtonConfig,
-    required AutocompleteSelectionConfig<T> selectionConfig,
-    required AutovalidateMode autovalidateMode,
-    required bool enabled,
-    required bool readOnly,
-    required bool autofocus,
-    T? value,
-    ValueChanged<T?>? onChanged,
-    AutocompleteGroupingConfig<T>? groupingConfig,
-    AutocompleteFilterConfig<T>? filterConfig,
-    AutocompleteRenderingConfig<T>? renderingConfig,
-    AutocompleteOptionEquality<T>? isOptionEqualToValue,
-    TextEditingController? controller,
-    FocusNode? focusNode,
-    FormFieldValidator<T?>? validator,
-    FormFieldSetter<T?>? onSaved,
-  }) {
-    return AutocompleteFieldConfiguration._(
-      selectionMode: AutocompleteSelectionMode.single,
-      options: options,
-      creatableConfig: creatableConfig,
-      value: value,
-      onChanged: onChanged,
-      getOptionLabel: getOptionLabel,
-      groupingConfig: groupingConfig,
-      behaviorConfig: behaviorConfig,
-      filterConfig: filterConfig,
-      renderingConfig: renderingConfig,
-      popupConfig: popupConfig,
-      clearButtonConfig: clearButtonConfig,
-      dropdownButtonConfig: dropdownButtonConfig,
-      selectionConfig: selectionConfig,
-      autovalidateMode: autovalidateMode,
-      isOptionEqualToValue: isOptionEqualToValue,
-      decoration: decoration,
-      controller: controller,
-      focusNode: focusNode,
-      singleValidator: validator,
-      singleOnSaved: onSaved,
-      enabled: enabled,
-      readOnly: readOnly,
-      autofocus: autofocus,
-    );
-  }
-
-  factory AutocompleteFieldConfiguration.creatableMultiple({
-    required List<T> options,
-    required List<T> values,
-    required ValueChanged<List<T>>? onValuesChanged,
-    required AutocompleteCreatableConfig<T> creatableConfig,
-    required AutocompleteOptionLabel<T> getOptionLabel,
-    required AutocompleteBehaviorConfig behaviorConfig,
-    required AutocompletePopupConfig popupConfig,
-    required AutocompleteChipConfig<T> chipConfig,
-    required InputDecoration decoration,
-    required AutocompleteClearButtonConfig clearButtonConfig,
-    required AutocompleteDropdownButtonConfig dropdownButtonConfig,
-    required AutocompleteSelectionConfig<T> selectionConfig,
-    required AutovalidateMode autovalidateMode,
-    required bool enabled,
-    required bool readOnly,
-    required bool autofocus,
-    AutocompleteGroupingConfig<T>? groupingConfig,
-    AutocompleteFilterConfig<T>? filterConfig,
-    AutocompleteRenderingConfig<T>? renderingConfig,
-    AutocompleteOptionEquality<T>? isOptionEqualToValue,
-    TextEditingController? controller,
-    FocusNode? focusNode,
-    FormFieldValidator<List<T>>? validator,
-    FormFieldSetter<List<T>>? onSaved,
-  }) {
-    return AutocompleteFieldConfiguration._(
-      selectionMode: AutocompleteSelectionMode.multiple,
-      options: options,
-      values: values,
-      onValuesChanged: onValuesChanged,
-      creatableConfig: creatableConfig,
-      getOptionLabel: getOptionLabel,
-      groupingConfig: groupingConfig,
-      behaviorConfig: behaviorConfig,
-      filterConfig: filterConfig,
-      renderingConfig: renderingConfig,
-      popupConfig: popupConfig,
-      clearButtonConfig: clearButtonConfig,
-      dropdownButtonConfig: dropdownButtonConfig,
-      selectionConfig: selectionConfig,
-      autovalidateMode: autovalidateMode,
-      chipConfig: chipConfig,
-      isOptionEqualToValue: isOptionEqualToValue,
-      decoration: decoration,
-      controller: controller,
-      focusNode: focusNode,
-      multipleValidator: validator,
-      multipleOnSaved: onSaved,
-      enabled: enabled,
-      readOnly: readOnly,
-      autofocus: autofocus,
+      isOptionDisabled: isOptionDisabled,
     );
   }
 
@@ -404,6 +305,7 @@ class AutocompleteFieldConfiguration<T> {
   final bool enabled;
   final bool readOnly;
   final bool autofocus;
+  final bool Function(T option)? isOptionDisabled;
 
   bool get isMultiple => selectionMode == AutocompleteSelectionMode.multiple;
   bool get isAsync => asyncConfig != null;
@@ -447,6 +349,7 @@ class AutocompleteFieldConfiguration<T> {
       multipleValidator: multipleValidator,
       singleOnSaved: singleOnSaved,
       multipleOnSaved: multipleOnSaved,
+      isOptionDisabled: isOptionDisabled,
     );
   }
 }

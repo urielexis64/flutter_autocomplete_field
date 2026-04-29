@@ -72,32 +72,6 @@ void main() {
     expect(find.text('Add "Mango"'), findsNothing);
   });
 
-  testWidgets('generic creatable mode creates typed values', (tester) async {
-    Tag? selected;
-
-    await tester.pumpWidget(
-      buildTestApp(
-        AutocompleteField<Tag>.creatable(
-          options: const [Tag('Alpha'), Tag('Beta')],
-          onChanged: (value) => selected = value,
-          getOptionLabel: (option) => option.label,
-          creatableConfig: const AutocompleteCreatableConfig<Tag>(
-            createOption: Tag.new,
-            clearInputOnCreate: false,
-          ),
-          decoration: const InputDecoration(labelText: 'Tag'),
-        ),
-      ),
-    );
-
-    await tester.enterText(find.byType(TextField), 'Gamma');
-    await tester.pumpAndSettle();
-    await selectCreateOption(tester, 'Gamma');
-
-    expect(selected?.label, 'Gamma');
-    expect(find.text('Gamma'), findsOneWidget);
-  });
-
   testWidgets('async constructor supports creatable values', (tester) async {
     String? selected;
 

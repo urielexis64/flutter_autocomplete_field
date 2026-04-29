@@ -93,42 +93,6 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               ),
             ),
           ),
-          _Section(
-            title: 'Creatable Single',
-            child: AutocompleteField<Tag>.creatable(
-              options: allTags,
-              value: selectedTag,
-              onChanged: (value) => setState(() => selectedTag = value),
-              getOptionLabel: (option) => option.label,
-              creatableConfig: AutocompleteCreatableConfig<Tag>(
-                createOption: (input) => Tag(input),
-              ),
-              decoration: const InputDecoration(
-                labelText: 'Tag',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          _Section(
-            title: 'Creatable Multiple With Grouping',
-            child: AutocompleteField<Tag>.creatableMultiple(
-              options: allTags,
-              values: selectedTags,
-              onChanged: (values) => setState(() => selectedTags = values),
-              getOptionLabel: (option) => option.label,
-              creatableConfig: AutocompleteCreatableConfig<Tag>(
-                createOption: (input) => Tag(input),
-              ),
-              groupingConfig: AutocompleteGroupingConfig<Tag>(
-                groupBy: (option) => option.label[0],
-                stickyHeaders: true,
-              ),
-              decoration: const InputDecoration(
-                labelText: 'Project Tags',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
         ],
       ),
     );

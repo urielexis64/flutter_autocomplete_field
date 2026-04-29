@@ -74,6 +74,7 @@ class AutocompleteField<T> extends StatelessWidget {
     bool enabled = true,
     bool readOnly = false,
     bool autofocus = false,
+    bool Function(T option)? isOptionDisabled,
   }) {
     return AutocompleteField._(
       key: key,
@@ -101,6 +102,7 @@ class AutocompleteField<T> extends StatelessWidget {
         enabled: enabled,
         readOnly: readOnly,
         autofocus: autofocus,
+        isOptionDisabled: isOptionDisabled,
       ),
     );
   }
@@ -145,6 +147,7 @@ class AutocompleteField<T> extends StatelessWidget {
     bool enabled = true,
     bool readOnly = false,
     bool autofocus = false,
+    bool Function(T option)? isOptionDisabled,
   }) {
     return AutocompleteField._(
       key: key,
@@ -173,6 +176,7 @@ class AutocompleteField<T> extends StatelessWidget {
         enabled: enabled,
         readOnly: readOnly,
         autofocus: autofocus,
+        isOptionDisabled: isOptionDisabled,
       ),
     );
   }
@@ -219,6 +223,7 @@ class AutocompleteField<T> extends StatelessWidget {
     bool enabled = true,
     bool readOnly = false,
     bool autofocus = false,
+    bool Function(T option)? isOptionDisabled,
   }) {
     return AutocompleteField._(
       key: key,
@@ -246,6 +251,7 @@ class AutocompleteField<T> extends StatelessWidget {
         enabled: enabled,
         readOnly: readOnly,
         autofocus: autofocus,
+        isOptionDisabled: isOptionDisabled,
       ),
     );
   }
@@ -287,6 +293,7 @@ class AutocompleteField<T> extends StatelessWidget {
     bool enabled = true,
     bool readOnly = false,
     bool autofocus = false,
+    bool Function(T option)? isOptionDisabled,
   }) {
     return AutocompleteField._(
       key: key,
@@ -315,140 +322,8 @@ class AutocompleteField<T> extends StatelessWidget {
         enabled: enabled,
         readOnly: readOnly,
         autofocus: autofocus,
+        isOptionDisabled: isOptionDisabled,
       ),
-    );
-  }
-
-  /// Creates a creatable single-select autocomplete.
-  ///
-  /// The generic [T] remains the selected value type. When the user taps the
-  /// synthetic create row, [AutocompleteCreatableConfig.createOption] converts
-  /// the current text input into a new `T`.
-  ///
-  /// This constructor supports `Form` validation through
-  /// `FormFieldValidator<T?>`.
-  factory AutocompleteField.creatable({
-    Key? key,
-    required List<T> options,
-    T? value,
-    ValueChanged<T?>? onChanged,
-    required AutocompleteOptionLabel<T> getOptionLabel,
-    required AutocompleteCreatableConfig<T> creatableConfig,
-    AutocompleteGroupingConfig<T>? groupingConfig,
-    AutocompleteBehaviorConfig behaviorConfig =
-        const AutocompleteBehaviorConfig(),
-    AutocompleteFilterConfig<T>? filterConfig,
-    AutocompleteRenderingConfig<T>? renderingConfig,
-    AutocompletePopupConfig popupConfig = const AutocompletePopupConfig(),
-    AutocompleteClearButtonConfig clearButtonConfig =
-        const AutocompleteClearButtonConfig(),
-    AutocompleteDropdownButtonConfig dropdownButtonConfig =
-        const AutocompleteDropdownButtonConfig(),
-    AutocompleteSelectionConfig<T> selectionConfig =
-        const AutocompleteSelectionConfig(),
-    AutocompleteOptionEquality<T>? isOptionEqualToValue,
-    InputDecoration decoration = const InputDecoration(),
-    TextEditingController? controller,
-    FocusNode? focusNode,
-    FormFieldValidator<T?>? validator,
-    FormFieldSetter<T?>? onSaved,
-    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
-    bool enabled = true,
-    bool readOnly = false,
-    bool autofocus = false,
-  }) {
-    return AutocompleteField.single(
-      key: key,
-      options: options,
-      value: value,
-      onChanged: onChanged,
-      getOptionLabel: getOptionLabel,
-      creatableConfig: creatableConfig,
-      groupingConfig: groupingConfig,
-      behaviorConfig: behaviorConfig,
-      filterConfig: filterConfig,
-      renderingConfig: renderingConfig,
-      popupConfig: popupConfig,
-      clearButtonConfig: clearButtonConfig,
-      dropdownButtonConfig: dropdownButtonConfig,
-      selectionConfig: selectionConfig,
-      isOptionEqualToValue: isOptionEqualToValue,
-      decoration: decoration,
-      controller: controller,
-      focusNode: focusNode,
-      validator: validator,
-      onSaved: onSaved,
-      autovalidateMode: autovalidateMode,
-      enabled: enabled,
-      readOnly: readOnly,
-      autofocus: autofocus,
-    );
-  }
-
-  /// Creates a creatable multiple-select autocomplete.
-  ///
-  /// This constructor supports `Form` validation through
-  /// `FormFieldValidator<List<T>>`.
-  factory AutocompleteField.creatableMultiple({
-    Key? key,
-    required List<T> options,
-    List<T> values = const [],
-    ValueChanged<List<T>>? onChanged,
-    required AutocompleteOptionLabel<T> getOptionLabel,
-    required AutocompleteCreatableConfig<T> creatableConfig,
-    AutocompleteGroupingConfig<T>? groupingConfig,
-    AutocompleteBehaviorConfig behaviorConfig =
-        const AutocompleteBehaviorConfig(
-      closeOnSelect: false,
-      clearInputOnSelect: true,
-    ),
-    AutocompleteFilterConfig<T>? filterConfig,
-    AutocompleteRenderingConfig<T>? renderingConfig,
-    AutocompletePopupConfig popupConfig = const AutocompletePopupConfig(),
-    AutocompleteClearButtonConfig clearButtonConfig =
-        const AutocompleteClearButtonConfig(),
-    AutocompleteDropdownButtonConfig dropdownButtonConfig =
-        const AutocompleteDropdownButtonConfig(),
-    AutocompleteSelectionConfig<T> selectionConfig =
-        const AutocompleteSelectionConfig(),
-    AutocompleteChipConfig<T> chipConfig = const AutocompleteChipConfig(),
-    AutocompleteOptionEquality<T>? isOptionEqualToValue,
-    InputDecoration decoration = const InputDecoration(),
-    TextEditingController? controller,
-    FocusNode? focusNode,
-    FormFieldValidator<List<T>>? validator,
-    FormFieldSetter<List<T>>? onSaved,
-    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
-    bool enabled = true,
-    bool readOnly = false,
-    bool autofocus = false,
-  }) {
-    return AutocompleteField.multiple(
-      key: key,
-      options: options,
-      values: values,
-      onChanged: onChanged,
-      getOptionLabel: getOptionLabel,
-      creatableConfig: creatableConfig,
-      groupingConfig: groupingConfig,
-      behaviorConfig: behaviorConfig,
-      filterConfig: filterConfig,
-      renderingConfig: renderingConfig,
-      popupConfig: popupConfig,
-      clearButtonConfig: clearButtonConfig,
-      dropdownButtonConfig: dropdownButtonConfig,
-      selectionConfig: selectionConfig,
-      chipConfig: chipConfig,
-      isOptionEqualToValue: isOptionEqualToValue,
-      decoration: decoration,
-      controller: controller,
-      focusNode: focusNode,
-      validator: validator,
-      onSaved: onSaved,
-      autovalidateMode: autovalidateMode,
-      enabled: enabled,
-      readOnly: readOnly,
-      autofocus: autofocus,
     );
   }
 

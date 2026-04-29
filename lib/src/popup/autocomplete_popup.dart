@@ -60,9 +60,11 @@ class AutocompletePopup<T> extends StatelessWidget {
       elevation: popupConfig.elevation,
       borderRadius: popupConfig.borderRadius,
       clipBehavior: Clip.antiAlias,
+      color: popupConfig.backgroundColor,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: popupConfig.backgroundColor ??
+              Theme.of(context).colorScheme.surface,
           borderRadius: popupConfig.borderRadius,
         ),
         child: ConstrainedBox(

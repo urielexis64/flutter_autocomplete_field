@@ -179,6 +179,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
                     isLoading: _isLoading,
                     highlightedOption: _highlightedOption,
                     createInput: _createOptionInput,
+                    isOptionDisabled: widget.configuration.isOptionDisabled,
                     createLabel: _createOptionInput == null
                         ? null
                         : _config.creatableConfig?.createLabel?.call(
@@ -212,6 +213,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       borderRadius: current.borderRadius,
       offset: current.offset,
       emptyStateHeight: current.emptyStateHeight,
+      backgroundColor: current.backgroundColor,
     );
   }
 
