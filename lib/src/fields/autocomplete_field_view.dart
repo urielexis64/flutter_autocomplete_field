@@ -47,7 +47,6 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   List<T> _selectedValues = <T>[];
   T? _selectedValue;
   List<T> _asyncOptions = const [];
-  List<T> _createdOptions = const [];
   bool _isLoading = false;
   bool _isOpen = false;
   double? _fieldWidth;
@@ -284,7 +283,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     if (_isLoading) {
       return true;
     }
-    return _visibleOptions.isNotEmpty || _createOptionInput != null;
+    return _visibleOptions.isNotEmpty ||
+        _createOptionInput != null ||
+        _shouldShowEmptyState;
   }
 
   void _configureTextEditingController() {
@@ -428,10 +429,13 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   }
 
   void _selectOption(T option) {
+    if (_config.behaviorConfig.toggleSelectionOnTap &&
+        _isOptionSelected(option)) {
+      _deselectOption(option);
+      return;
+    }
+
     if (_config.isMultiple) {
-      if (_isOptionSelected(option)) {
-        return;
-      }
       final nextValues = [..._selectedValues, option];
       setState(() {
         _selectedValues = nextValues;
@@ -463,11 +467,6 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
     final creatable = _config.creatableConfig as AutocompleteCreatableConfig<T>;
     final created = creatable.createOption(input);
-    if (!_matchesOption(created, _allOptions)) {
-      setState(() {
-        _createdOptions = {..._createdOptions, created}.toList();
-      });
-    }
 
     if (_config.isMultiple && _isOptionSelected(created)) {
       return;
@@ -501,6 +500,31 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
   }
 
+  void _deselectOption(T option) {
+    if (_config.isMultiple) {
+      if (_isFixedChip(option)) {
+        return;
+      }
+      final nextValues = _selectedValues
+          .where((item) => !_isEqual(item, option))
+          .toList(growable: false);
+      setState(() {
+        _selectedValues = nextValues;
+        if (_config.behaviorConfig.clearInputOnSelect) {
+          _controller.clear();
+        }
+      });
+      _config.onValuesChanged?.call(List<T>.unmodifiable(nextValues));
+    } else {
+      setState(() {
+        _selectedValue = null;
+        _controller.clear();
+      });
+      _config.onChanged?.call(null);
+    }
+    _afterSelection();
+  }
+
   void _removeValue(T value) {
     if (_isFixedChip(value)) {
       return;
@@ -526,12 +550,33 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     final shouldOpen = (forceOpen || _focusNode.hasFocus) &&
         (_isLoading ||
             _visibleOptions.isNotEmpty ||
-            _createOptionInput != null);
+            _createOptionInput != null ||
+            _shouldShowEmptyState);
     if (shouldOpen) {
       _openPopup();
     } else {
       _closePopup();
     }
+  }
+
+  bool get _shouldShowEmptyState {
+    if (_isLoading) {
+      return false;
+    }
+    final query = _controller.text;
+    if (!_shouldShowOptionsForQuery(query)) {
+      return false;
+    }
+    if (_visibleOptions.isNotEmpty || _createOptionInput != null) {
+      return false;
+    }
+    if (!_config.isAsync) {
+      return true;
+    }
+    final asyncConfig = _config.asyncConfig!;
+    final meetsMinimum = query.length >= asyncConfig.minQueryLength;
+    final allowEmptyFocusLoad = query.isEmpty && asyncConfig.loadOnFocus;
+    return meetsMinimum || allowEmptyFocusLoad;
   }
 
   void _openPopup() {
@@ -588,10 +633,6 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
 
     return transform(optionLabel) == transform(normalizedInput);
-  }
-
-  bool _matchesOption(T option, List<T> options) {
-    return options.any((item) => _isEqual(option, item));
   }
 
   bool _isEqual(T option, T value) {

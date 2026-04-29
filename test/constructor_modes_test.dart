@@ -87,6 +87,69 @@ void main() {
     expect(find.text('Apple'), findsAtLeastNWidgets(1));
   });
 
+  testWidgets('multiple mode can toggle selected option off on tap', (
+    tester,
+  ) async {
+    var selected = <String>[];
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.multiple(
+          options: const ['Apple', 'Banana'],
+          onChanged: (values) => selected = values,
+          getOptionLabel: (option) => option,
+          behaviorConfig: const AutocompleteBehaviorConfig(
+            closeOnSelect: false,
+            clearInputOnSelect: true,
+            toggleSelectionOnTap: true,
+          ),
+          decoration: const InputDecoration(labelText: 'Fruits'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    await selectPopupOption(tester, 'Apple');
+    expect(selected, ['Apple']);
+
+    await selectPopupOption(tester, 'Apple');
+    expect(selected, isEmpty);
+  });
+
+  testWidgets('single mode can clear selected option by tapping again', (
+    tester,
+  ) async {
+    String? selected;
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana'],
+          onChanged: (value) => selected = value,
+          getOptionLabel: (option) => option,
+          behaviorConfig: const AutocompleteBehaviorConfig(
+            toggleSelectionOnTap: true,
+          ),
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    await selectPopupOption(tester, 'Banana');
+    expect(selected, 'Banana');
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('autocomplete-dropdown-button')),
+    );
+    await tester.pumpAndSettle();
+    await selectPopupOption(tester, 'Banana');
+
+    expect(selected, isNull);
+  });
+
   testWidgets('clear button clears single selection', (tester) async {
     String? selected = 'Apple';
 

@@ -10,6 +10,7 @@ class AutocompleteBehaviorConfig {
     this.closeOnSelect = true,
     this.clearInputOnSelect = false,
     this.showOptionsOnEmptyInput = true,
+    this.toggleSelectionOnTap = true,
   }) : assert(
           !(disableCloseOnSelect && closeOnSelect),
           'disableCloseOnSelect and closeOnSelect cannot both be true.',
@@ -24,4 +25,7 @@ class AutocompleteBehaviorConfig {
   final bool closeOnSelect;
   final bool clearInputOnSelect;
   final bool showOptionsOnEmptyInput;
+
+  /// Allows tapping an already-selected option in the popup to unselect it.
+  final bool toggleSelectionOnTap;
 }

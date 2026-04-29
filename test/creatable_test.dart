@@ -99,6 +99,40 @@ void main() {
     expect(selected, 'Mango');
     expect(find.text('Mango'), findsOneWidget);
   });
+
+  testWidgets('created options are not retained after deselection', (
+    tester,
+  ) async {
+    String? selected;
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana'],
+          onChanged: (value) => selected = value,
+          getOptionLabel: (option) => option,
+          creatableConfig: const AutocompleteCreatableConfig<String>(
+            createOption: _identity,
+          ),
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'Mango');
+    await tester.pumpAndSettle();
+    await selectCreateOption(tester, 'Mango');
+    expect(selected, 'Mango');
+
+    await tester
+        .tap(find.byKey(const ValueKey<String>('autocomplete-clear-button')));
+    await tester.pumpAndSettle();
+    expect(selected, isNull);
+
+    await tester.enterText(find.byType(TextField), 'Mango');
+    await tester.pumpAndSettle();
+    expect(find.text('Add "Mango"'), findsOneWidget);
+  });
 }
 
 String _identity(String input) => input;

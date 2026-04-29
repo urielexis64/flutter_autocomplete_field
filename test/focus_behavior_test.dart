@@ -118,6 +118,26 @@ void main() {
     expect(scrollbar.padding, EdgeInsets.zero);
   });
 
+  testWidgets('empty popup is shown when there are no matching options', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana'],
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'zzz');
+    await tester.pumpAndSettle();
+
+    expect(findPopupSurface(), findsOneWidget);
+    expect(findPopupText('No options'), findsOneWidget);
+  });
+
   testWidgets(
     'popup stays within viewport when space is limited above and below',
     (tester) async {
