@@ -135,10 +135,14 @@ void main() {
   });
 }
 
+/// Test helper used as `createOption` for `String` creatable scenarios.
 String _identity(String input) => input;
 
+/// Simple model used to validate generic creatable type support in tests.
 class Tag {
+  /// Creates a [Tag] with display [label].
   const Tag(this.label);
 
+  /// Human-readable tag label.
   final String label;
 }

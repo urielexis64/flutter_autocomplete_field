@@ -3,6 +3,12 @@ import '../enums/autocomplete_match_from.dart';
 import '../models/autocomplete_typedefs.dart';
 import '../utils/text_normalizer.dart';
 
+/// Applies built-in option filtering behavior for the current query.
+///
+/// If [filterConfig.filterOptions] is provided, this function delegates to that
+/// callback and only applies [AutocompleteFilterConfig.limit] afterward.
+///
+/// Returns a new list when filtering or limiting is applied.
 List<T> applyAutocompleteFilter<T>({
   required List<T> options,
   required String query,
@@ -44,6 +50,9 @@ List<T> applyAutocompleteFilter<T>({
   return _limit(filtered, config.limit);
 }
 
+/// Applies result limiting when [limit] is non-null.
+///
+/// Returns the original [options] list when no truncation is needed.
 List<T> _limit<T>(List<T> options, int? limit) {
   if (limit == null || options.length <= limit) {
     return options;

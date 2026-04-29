@@ -15,6 +15,18 @@ import '../models/autocomplete_typedefs.dart';
 import 'autocomplete_field_configuration.dart';
 import 'autocomplete_field_view.dart';
 
+/// {@template autocomplete.noKeyboardSupport}
+/// This package is mobile-first and does not implement physical keyboard
+/// shortcuts, arrow navigation, Home/End handling, or Enter/Escape behavior.
+/// {@endtemplate}
+///
+/// {@template autocomplete.formIntegration}
+/// All constructors integrate with Flutter forms:
+/// - `validator` validates current selection;
+/// - `onSaved` persists selection on form save;
+/// - `autovalidateMode` controls validation timing.
+/// {@endtemplate}
+///
 /// Mobile-first autocomplete input with focused constructors per mode.
 ///
 /// The package does not support physical keyboard navigation, desktop-style
@@ -23,14 +35,23 @@ import 'autocomplete_field_view.dart';
 /// Every constructor integrates with Flutter forms through `validator`,
 /// `onSaved`, and `autovalidateMode`.
 class AutocompleteField<T> extends StatelessWidget {
+  /// Internal constructor used by mode-specific public factories.
   const AutocompleteField._({
     required AutocompleteFieldConfiguration<T> configuration,
     super.key,
   }) : _configuration = configuration;
 
+  /// Normalized field configuration consumed by [AutocompleteFieldView].
   final AutocompleteFieldConfiguration<T> _configuration;
 
   /// Creates a single-select autocomplete backed by a synchronous option list.
+  ///
+  /// Use this mode when users should choose at most one value from local
+  /// in-memory options.
+  ///
+  /// {@macro autocomplete.formIntegration}
+  ///
+  /// {@macro autocomplete.noKeyboardSupport}
   ///
   /// This constructor supports `Form` validation through
   /// `FormFieldValidator<T?>`.
@@ -112,6 +133,13 @@ class AutocompleteField<T> extends StatelessWidget {
   /// The field uses an [InputDecorator] plus a wrapping chip/input layout so it
   /// can grow vertically on mobile without overflowing.
   ///
+  /// Use this mode when users can select many values and should see selections
+  /// inline as chips.
+  ///
+  /// {@macro autocomplete.formIntegration}
+  ///
+  /// {@macro autocomplete.noKeyboardSupport}
+  ///
   /// This constructor supports `Form` validation through
   /// `FormFieldValidator<List<T>>`.
   factory AutocompleteField.multiple({
@@ -182,6 +210,13 @@ class AutocompleteField<T> extends StatelessWidget {
   }
 
   /// Creates an async single-select autocomplete.
+  ///
+  /// Use this mode when options come from asynchronous data sources such as an
+  /// API or local database query.
+  ///
+  /// {@macro autocomplete.formIntegration}
+  ///
+  /// {@macro autocomplete.noKeyboardSupport}
   ///
   /// This constructor supports `Form` validation through
   /// `FormFieldValidator<T?>`.
@@ -257,6 +292,13 @@ class AutocompleteField<T> extends StatelessWidget {
   }
 
   /// Creates an async multiple-select autocomplete.
+  ///
+  /// Use this mode when options are loaded asynchronously and users may select
+  /// more than one value.
+  ///
+  /// {@macro autocomplete.formIntegration}
+  ///
+  /// {@macro autocomplete.noKeyboardSupport}
   ///
   /// This constructor supports `Form` validation through
   /// `FormFieldValidator<List<T>>`.

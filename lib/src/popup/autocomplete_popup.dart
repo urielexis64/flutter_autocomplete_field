@@ -12,7 +12,19 @@ import '../theme/autocomplete_defaults.dart';
 import 'group_header_delegate.dart';
 import 'popup_option_tile.dart';
 
+/// Popup surface that renders autocomplete options, loading, and empty states.
+///
+/// This widget is purely visual. It does not own selection state, filtering, or
+/// async orchestration. Those responsibilities live in
+/// `AutocompleteFieldView`.
+///
+/// Grouping is presentation-only and can be enabled through
+/// [groupingConfig]. Creatable actions are always rendered outside groups.
 class AutocompletePopup<T> extends StatelessWidget {
+  /// Creates an autocomplete popup.
+  ///
+  /// All callbacks are expected to be side-effect safe. This widget may rebuild
+  /// often while users type or async states change.
   const AutocompletePopup({
     required this.options,
     required this.query,
@@ -33,21 +45,52 @@ class AutocompletePopup<T> extends StatelessWidget {
     super.key,
   });
 
+  /// Options already filtered by the parent field.
   final List<T> options;
+
+  /// Current query used for loading/empty builders.
   final String query;
+
+  /// Label resolver for options.
   final AutocompleteOptionLabel<T> getOptionLabel;
+
+  /// Reports whether an option is currently selected.
   final bool Function(T option) isSelected;
+
+  /// Optional disabled-state predicate for options.
   final bool Function(T option)? isOptionDisabled;
+
+  /// Called when a regular option is tapped.
   final ValueChanged<T> onOptionTap;
+
+  /// Popup geometry and styling configuration.
   final AutocompletePopupConfig popupConfig;
+
+  /// Selection rendering behavior for option rows.
   final AutocompleteSelectionConfig<T> selectionConfig;
+
+  /// Optional visual grouping configuration.
   final AutocompleteGroupingConfig<T>? groupingConfig;
+
+  /// Optional custom renderers for loading, empty, groups, and options.
   final AutocompleteRenderingConfig<T>? renderingConfig;
+
+  /// Whether async options are currently loading.
   final bool isLoading;
+
+  /// Option that should appear visually highlighted.
   final T? highlightedOption;
+
+  /// Input shown as synthetic creatable option, when available.
   final String? createInput;
+
+  /// Optional label override for the creatable option.
   final String? createLabel;
+
+  /// Tap callback for the creatable option.
   final VoidCallback? onCreateTap;
+
+  /// Optional custom builder for the creatable option row.
   final Widget Function(BuildContext context, String input)?
       createOptionBuilder;
 
@@ -83,6 +126,7 @@ class AutocompletePopup<T> extends StatelessWidget {
     );
   }
 
+  /// Builds the loading placeholder while options are in-flight.
   Widget _buildLoading(BuildContext context) {
     return SizedBox(
       height: popupConfig.emptyStateHeight,
@@ -94,6 +138,7 @@ class AutocompletePopup<T> extends StatelessWidget {
     );
   }
 
+  /// Builds the non-loading popup body (options, groups, or empty state).
   Widget _buildContent(BuildContext context) {
     if (options.isEmpty && createInput == null) {
       return SizedBox(
@@ -122,6 +167,7 @@ class AutocompletePopup<T> extends StatelessWidget {
     );
   }
 
+  /// Produces outer slivers with popup edge padding applied.
   List<Widget> _buildSlivers(BuildContext context) {
     final contentSlivers = _buildContentSlivers(context);
     final resolvedPadding = popupConfig.padding.resolve(
@@ -158,6 +204,10 @@ class AutocompletePopup<T> extends StatelessWidget {
         .toList(growable: false);
   }
 
+  /// Produces content slivers for grouped/flat options and creatable action.
+  ///
+  /// Creatable action is intentionally appended only when there are no regular
+  /// options so it remains visually distinct from grouped results.
   List<Widget> _buildContentSlivers(BuildContext context) {
     final groups = buildAutocompleteGroups(options, groupingConfig);
     final slivers = <Widget>[];
@@ -214,6 +264,7 @@ class AutocompletePopup<T> extends StatelessWidget {
     return slivers;
   }
 
+  /// Builds a simple sliver list for [groupOptions].
   Widget _buildFlatOptionsSliver(BuildContext context, List<T> groupOptions) {
     return SliverList.builder(
       itemCount: groupOptions.length,
@@ -224,6 +275,7 @@ class AutocompletePopup<T> extends StatelessWidget {
     );
   }
 
+  /// Builds a non-sticky grouped section.
   Widget _buildGroupedSection(
     BuildContext context,
     AutocompleteOptionGroup<T> group,
@@ -246,6 +298,7 @@ class AutocompletePopup<T> extends StatelessWidget {
     return SliverToBoxAdapter(child: section);
   }
 
+  /// Builds a sticky/pinned header for one option group.
   Widget _buildStickyGroupHeader(BuildContext context, String group) {
     return SliverPersistentHeader(
       pinned: true,
@@ -256,6 +309,7 @@ class AutocompletePopup<T> extends StatelessWidget {
     );
   }
 
+  /// Builds the effective group header, using user override when provided.
   Widget _buildDefaultHeader(BuildContext context, String group) {
     final customHeader = groupingConfig?.groupHeaderBuilder?.call(
       context,
@@ -276,6 +330,7 @@ class AutocompletePopup<T> extends StatelessWidget {
     );
   }
 
+  /// Builds one tappable option row.
   Widget _buildOption(BuildContext context, T option) {
     final label = getOptionLabel(option);
     final disabled = isOptionDisabled?.call(option) ?? false;

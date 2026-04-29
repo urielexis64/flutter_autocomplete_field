@@ -1,3 +1,13 @@
+/// Public library exports for the `flutter_autocomplete` package.
+///
+/// Import this file to access supported field widgets, shared configuration
+/// objects, and model types:
+///
+/// ```dart
+/// import 'package:flutter_autocomplete/flutter_autocomplete.dart';
+/// ```
+library;
+
 export 'src/configs/autocomplete_async_config.dart';
 export 'src/configs/autocomplete_behavior_config.dart';
 export 'src/configs/autocomplete_chip_config.dart';

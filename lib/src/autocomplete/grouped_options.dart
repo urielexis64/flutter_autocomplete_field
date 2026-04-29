@@ -1,6 +1,16 @@
 import '../configs/autocomplete_grouping_config.dart';
 import '../models/autocomplete_option_group.dart';
 
+/// Creates ordered visual groups from [options] using [groupingConfig].
+///
+/// Grouping is presentation-only; selection semantics and option equality are
+/// not changed by this transformation.
+///
+/// Returns an empty list when grouping is disabled (`groupBy == null`), which
+/// signals the popup to render a flat list.
+///
+/// Returns immutable option lists in each [AutocompleteOptionGroup] to avoid
+/// accidental mutation during rendering.
 List<AutocompleteOptionGroup<T>> buildAutocompleteGroups<T>(
   List<T> options,
   AutocompleteGroupingConfig<T>? groupingConfig,

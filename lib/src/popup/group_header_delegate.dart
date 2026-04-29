@@ -1,9 +1,17 @@
 import 'package:flutter/widgets.dart';
 
+/// Fixed-height delegate used to pin popup group headers.
+///
+/// This delegate intentionally keeps [minExtent] and [maxExtent] equal so each
+/// header has stable geometry during list scrolling.
 class GroupHeaderDelegate extends SliverPersistentHeaderDelegate {
+  /// Creates a sliver delegate for a pinned group header.
   GroupHeaderDelegate({required this.child, required this.extent});
 
+  /// Header content to render.
   final Widget child;
+
+  /// Fixed header height in logical pixels.
   final double extent;
 
   @override

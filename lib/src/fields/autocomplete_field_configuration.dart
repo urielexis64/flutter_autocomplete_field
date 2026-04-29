@@ -14,9 +14,18 @@ import '../configs/autocomplete_selection_config.dart';
 import '../models/autocomplete_typedefs.dart';
 import 'selection_mode.dart';
 
+/// Immutable runtime configuration consumed by [AutocompleteFieldView].
+///
+/// This object normalizes constructor-specific APIs (`single`, `multiple`,
+/// `async`, `asyncMultiple`) into one internal model so rendering and behavior
+/// logic can stay centralized.
 class AutocompleteFieldConfiguration<T> {
+  /// Internal sentinel used by [copyWith] to distinguish omitted from `null`.
   static const Object _unset = Object();
 
+  /// Creates a normalized configuration snapshot.
+  ///
+  /// Use one of the mode-specific factories instead of this constructor.
   const AutocompleteFieldConfiguration._({
     required this.selectionMode,
     required this.getOptionLabel,
@@ -51,6 +60,7 @@ class AutocompleteFieldConfiguration<T> {
     this.isOptionDisabled,
   });
 
+  /// Creates configuration for synchronous single selection.
   factory AutocompleteFieldConfiguration.single({
     required List<T> options,
     required AutocompleteOptionLabel<T> getOptionLabel,
@@ -106,6 +116,7 @@ class AutocompleteFieldConfiguration<T> {
     );
   }
 
+  /// Creates configuration for synchronous multiple selection.
   factory AutocompleteFieldConfiguration.multiple({
     required List<T> options,
     required List<T> values,
@@ -163,6 +174,7 @@ class AutocompleteFieldConfiguration<T> {
     );
   }
 
+  /// Creates configuration for asynchronous single selection.
   factory AutocompleteFieldConfiguration.asyncSingle({
     required AutocompleteAsyncConfig<T> asyncConfig,
     required AutocompleteOptionLabel<T> getOptionLabel,
@@ -218,6 +230,7 @@ class AutocompleteFieldConfiguration<T> {
     );
   }
 
+  /// Creates configuration for asynchronous multiple selection.
   factory AutocompleteFieldConfiguration.asyncMultiple({
     required AutocompleteAsyncConfig<T> asyncConfig,
     required List<T> values,
@@ -275,42 +288,112 @@ class AutocompleteFieldConfiguration<T> {
     );
   }
 
+  /// Whether the field manages one or many selected values.
   final AutocompleteSelectionMode selectionMode;
+
+  /// Synchronous option source; `null` in async modes.
   final List<T>? options;
+
+  /// Async option source configuration; `null` in synchronous modes.
   final AutocompleteAsyncConfig<T>? asyncConfig;
+
+  /// Optional creatable behavior configuration.
   final AutocompleteCreatableConfig<T>? creatableConfig;
+
+  /// Current single selected value in single mode.
   final T? value;
+
+  /// Current selected values in multiple mode.
   final List<T>? values;
+
+  /// Single-mode selection callback.
   final ValueChanged<T?>? onChanged;
+
+  /// Multiple-mode selection callback.
   final ValueChanged<List<T>>? onValuesChanged;
+
+  /// Label resolver for options and selected values.
   final AutocompleteOptionLabel<T> getOptionLabel;
+
+  /// Optional visual grouping configuration.
   final AutocompleteGroupingConfig<T>? groupingConfig;
+
+  /// Interaction behavior flags.
   final AutocompleteBehaviorConfig behaviorConfig;
+
+  /// Optional text filtering configuration.
   final AutocompleteFilterConfig<T>? filterConfig;
+
+  /// Optional rendering customizations.
   final AutocompleteRenderingConfig<T>? renderingConfig;
+
+  /// Popup style/layout configuration.
   final AutocompletePopupConfig popupConfig;
+
+  /// Clear-button appearance and visibility rules.
   final AutocompleteClearButtonConfig clearButtonConfig;
+
+  /// Dropdown indicator button appearance and visibility rules.
   final AutocompleteDropdownButtonConfig dropdownButtonConfig;
+
+  /// Selection indicator and selected-option visibility behavior.
   final AutocompleteSelectionConfig<T> selectionConfig;
+
+  /// Flutter form autovalidation policy.
   final AutovalidateMode autovalidateMode;
+
+  /// Multiple-mode chip presentation configuration.
   final AutocompleteChipConfig<T>? chipConfig;
+
+  /// Optional custom equality between options and selected values.
   final AutocompleteOptionEquality<T>? isOptionEqualToValue;
+
+  /// Base field decoration.
   final InputDecoration decoration;
+
+  /// Optional externally managed text controller.
   final TextEditingController? controller;
+
+  /// Optional externally managed focus node.
   final FocusNode? focusNode;
+
+  /// Single-mode validator for form integration.
   final FormFieldValidator<T?>? singleValidator;
+
+  /// Multiple-mode validator for form integration.
   final FormFieldValidator<List<T>>? multipleValidator;
+
+  /// Single-mode onSaved callback for form integration.
   final FormFieldSetter<T?>? singleOnSaved;
+
+  /// Multiple-mode onSaved callback for form integration.
   final FormFieldSetter<List<T>>? multipleOnSaved;
+
+  /// Whether field interactions are enabled.
   final bool enabled;
+
+  /// Whether text editing is disabled while still allowing focus.
   final bool readOnly;
+
+  /// Whether the field should request focus on mount.
   final bool autofocus;
+
+  /// Optional callback that marks specific options as disabled.
   final bool Function(T option)? isOptionDisabled;
 
+  /// Whether this configuration is for multiple selection.
   bool get isMultiple => selectionMode == AutocompleteSelectionMode.multiple;
+
+  /// Whether options are loaded asynchronously.
   bool get isAsync => asyncConfig != null;
+
+  /// Whether synthetic create-option behavior is enabled.
   bool get isCreatable => creatableConfig != null;
 
+  /// Creates a copy overriding mutable runtime values.
+  ///
+  /// This is primarily used by `FormField` wrappers to inject current value and
+  /// validation error text without mutating the original configuration.
   AutocompleteFieldConfiguration<T> copyWith({
     Object? value = _unset,
     Object? values = _unset,

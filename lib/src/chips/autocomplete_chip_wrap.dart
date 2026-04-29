@@ -7,7 +7,20 @@ import '../models/autocomplete_chip_state.dart';
 import '../models/autocomplete_typedefs.dart';
 import '../theme/autocomplete_defaults.dart';
 
+/// Chip-based input surface used by multiple-selection modes.
+///
+/// Layout model:
+/// - [InputDecorator] is the outer form shell.
+/// - A [Wrap] inside the decorator renders selected chips and a borderless
+///   [TextField].
+///
+/// This structure keeps the field mobile-friendly: it can grow vertically
+/// without overflow, supports tap-anywhere focus, and keeps label floating
+/// semantics aligned with [InputDecorator.isFocused]/`isEmpty`.
 class AutocompleteChipWrap<T> extends StatelessWidget {
+  /// Creates a chip-wrapped multiple-selection input.
+  ///
+  /// The caller owns [controller] and [focusNode] lifecycles.
   const AutocompleteChipWrap({
     required this.values,
     required this.getOptionLabel,
@@ -26,19 +39,46 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     super.key,
   });
 
+  /// Selected values rendered as chips.
   final List<T> values;
+
+  /// Label resolver for selected values.
   final AutocompleteOptionLabel<T> getOptionLabel;
+
+  /// Returns `true` when a chip is fixed and cannot be removed.
   final bool Function(T value) isFixed;
+
+  /// Called when a removable chip delete action is triggered.
   final ValueChanged<T> onDelete;
+
+  /// Query text controller.
   final TextEditingController controller;
+
+  /// Focus node for the embedded text field.
   final FocusNode focusNode;
+
+  /// Decoration applied by the outer [InputDecorator].
   final InputDecoration decoration;
+
+  /// Whether interactions are enabled.
   final bool enabled;
+
+  /// Whether typing is disabled while chips remain visible.
   final bool readOnly;
+
+  /// Whether the text field should request focus on mount.
   final bool autofocus;
+
+  /// Chip layout and rendering configuration.
   final AutocompleteChipConfig<T> chipConfig;
+
+  /// Optional advanced rendering overrides.
   final AutocompleteRenderingConfig<T>? renderingConfig;
+
+  /// Query changed callback from the embedded [TextField].
   final ValueChanged<String> onChanged;
+
+  /// Optional trailing controls merged into [decoration.suffixIcon].
   final Widget? suffixIcon;
 
   @override
@@ -118,6 +158,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     );
   }
 
+  /// Builds visible chip widgets using default or custom renderers.
   List<Widget> _buildChipWidgets(BuildContext context) {
     final chips = values
         .map(
@@ -155,6 +196,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     return widgets;
   }
 
+  /// Builds one chip using [AutocompleteChipConfig.chipBuilder] when present.
   Widget _buildChip(BuildContext context, AutocompleteChipState<T> chip) {
     return chipConfig.chipBuilder?.call(context, chip) ??
         InputChip(
@@ -164,6 +206,9 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
         );
   }
 
+  /// Measures text width to keep the inline input usable inside the wrap.
+  ///
+  /// Returns a clamped width between package defaults and [maxWidth].
   double _measureInputWidth(
     BuildContext context,
     String text,

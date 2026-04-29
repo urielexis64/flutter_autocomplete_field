@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_autocomplete/flutter_autocomplete.dart';
 
+/// Runs the package example application.
 void main() {
   runApp(const ExampleApp());
 }
 
+/// Root example app shell.
 class ExampleApp extends StatelessWidget {
+  /// Creates the root example app widget.
   const ExampleApp({super.key});
 
   @override
@@ -21,26 +24,40 @@ class ExampleApp extends StatelessWidget {
   }
 }
 
+/// Example page showcasing single, multiple, and async constructors.
 class ExampleHomePage extends StatefulWidget {
+  /// Creates the example home page.
   const ExampleHomePage({super.key});
 
   @override
   State<ExampleHomePage> createState() => _ExampleHomePageState();
 }
 
+/// State holder for demo selections and async search behavior.
 class _ExampleHomePageState extends State<ExampleHomePage> {
+  /// Local options used by sync examples.
   static const fruits = ['Apple', 'Banana', 'Cherry', 'Dragonfruit', 'Fig'];
 
+  /// Example tag models for generic multiple selection.
   final allTags = <Tag>[
     const Tag('Work'),
     const Tag('Personal'),
     const Tag('Urgent'),
   ];
 
+  /// Current single selected fruit value.
   String? selectedFruit;
+
+  /// Current selected fruits for multiple mode.
   List<String> selectedFruits = const ['Apple'];
+
+  /// Current selected city from async mode.
   String? selectedCity;
+
+  /// Current selected single tag.
   Tag? selectedTag;
+
+  /// Current selected tags for multiple generic mode.
   List<Tag> selectedTags = const [Tag('Work')];
 
   @override
@@ -98,6 +115,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
     );
   }
 
+  /// Simulates an async city search.
   Future<List<String>> _searchCities(String query) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     const cities = [
@@ -118,10 +136,15 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   }
 }
 
+/// Simple section container used to format example blocks.
 class _Section extends StatelessWidget {
+  /// Creates a titled section with [child] content.
   const _Section({required this.title, required this.child});
 
+  /// Section title.
   final String title;
+
+  /// Section body content.
   final Widget child;
 
   @override
@@ -140,8 +163,11 @@ class _Section extends StatelessWidget {
   }
 }
 
+/// Minimal example model for demonstrating generic autocomplete types.
 class Tag {
+  /// Creates a [Tag] with display [label].
   const Tag(this.label);
 
+  /// Human-readable tag label.
   final String label;
 }

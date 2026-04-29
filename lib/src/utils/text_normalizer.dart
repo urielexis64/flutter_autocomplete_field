@@ -1,3 +1,14 @@
+/// Normalizes [value] for autocomplete text matching.
+///
+/// The transformation order is:
+/// 1. Trim leading/trailing whitespace when [trim] is `true`.
+/// 2. Convert to lowercase when [ignoreCase] is `true`.
+/// 3. Strip a limited set of Latin accents when [ignoreAccents] is `true`.
+///
+/// Returns a transformed string suitable for comparison operations.
+///
+/// This helper intentionally avoids heavyweight Unicode normalization to keep
+/// filtering predictable and fast on mobile devices.
 String normalizeAutocompleteText(
   String value, {
   required bool trim,
@@ -14,6 +25,10 @@ String normalizeAutocompleteText(
   return output;
 }
 
+/// Removes a conservative subset of Latin diacritics from [input].
+///
+/// This is intentionally not a full Unicode decomposition algorithm. Characters
+/// outside the replacement table are returned unchanged.
 String _stripAccents(String input) {
   const replacements = <String, String>{
     'á': 'a',

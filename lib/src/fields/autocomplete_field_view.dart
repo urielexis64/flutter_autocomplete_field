@@ -9,7 +9,9 @@ import '../popup/autocomplete_popup.dart';
 import 'autocomplete_field_configuration.dart';
 import 'single_autocomplete_input.dart';
 
+/// Calculated popup geometry relative to the overlay coordinate space.
 class _PopupPlacement {
+  /// Creates immutable placement values for the popup surface.
   const _PopupPlacement({
     required this.left,
     required this.top,
@@ -17,15 +19,31 @@ class _PopupPlacement {
     required this.maxHeight,
   });
 
+  /// Left coordinate of the popup surface.
   final double left;
+
+  /// Top coordinate of the popup surface.
   final double top;
+
+  /// Popup width.
   final double width;
+
+  /// Maximum height available for popup content.
   final double maxHeight;
 }
 
+/// Internal stateful renderer for autocomplete field behavior.
+///
+/// Responsibilities:
+/// - synchronize selection and query state;
+/// - orchestrate async loading/debouncing;
+/// - manage popup overlay visibility and placement;
+/// - compose either single-input or chip-input presentation.
 class AutocompleteFieldView<T> extends StatefulWidget {
+  /// Creates a field view from a normalized [configuration].
   const AutocompleteFieldView({required this.configuration, super.key});
 
+  /// Complete behavior/rendering configuration for this instance.
   final AutocompleteFieldConfiguration<T> configuration;
 
   @override
@@ -33,23 +51,54 @@ class AutocompleteFieldView<T> extends StatefulWidget {
       _AutocompleteFieldViewState<T>();
 }
 
+/// Stateful implementation for [AutocompleteFieldView].
+///
+/// Private state is intentionally centralized here to keep mode-specific
+/// constructors in [AutocompleteField] small and declarative.
 class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
+  /// Controls whether the popup overlay is shown.
   final OverlayPortalController _overlayController = OverlayPortalController();
+
+  /// Key for measuring and anchoring the field container.
   final GlobalKey _fieldKey = GlobalKey();
+
+  /// Shared tap-region identifier used to detect outside taps.
   final Object _tapRegionGroupId = Object();
 
+  /// Query text controller (owned locally unless externally provided).
   late TextEditingController _controller;
+
+  /// Focus node (owned locally unless externally provided).
   late FocusNode _focusNode;
+
+  /// Whether this state object owns [_controller] disposal.
   late bool _ownsController;
+
+  /// Whether this state object owns [_focusNode] disposal.
   late bool _ownsFocusNode;
 
+  /// Async request coordinator for async modes.
   AsyncOptionsController<T>? _asyncController;
+
+  /// Current selected values for multiple mode.
   List<T> _selectedValues = <T>[];
+
+  /// Current selected value for single mode.
   T? _selectedValue;
+
+  /// Latest async options payload.
   List<T> _asyncOptions = const [];
+
+  /// Whether an async request is currently in-flight.
   bool _isLoading = false;
+
+  /// Whether a debounced async request is pending.
   bool _isDebouncing = false;
+
+  /// Whether popup is currently open.
   bool _isOpen = false;
+
+  /// Measured field width used as popup-width fallback.
   double? _fieldWidth;
 
   @override
@@ -203,6 +252,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     );
   }
 
+  /// Returns popup config with runtime-constrained [maxHeight].
   AutocompletePopupConfig _resolvedPopupConfig(double maxHeight) {
     final current = widget.configuration.popupConfig;
     return AutocompletePopupConfig(
@@ -218,8 +268,10 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     );
   }
 
+  /// Short alias for current widget configuration.
   AutocompleteFieldConfiguration<T> get _config => widget.configuration;
 
+  /// Source option list before query filtering.
   List<T> get _allOptions {
     if (_config.isAsync) {
       return _asyncOptions;
@@ -227,6 +279,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return <T>[...?_config.options];
   }
 
+  /// Option list visible in the popup after query and config filtering.
   List<T> get _visibleOptions {
     final query = _controller.text;
     if (!_shouldShowOptionsForQuery(query)) {
@@ -249,6 +302,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return options;
   }
 
+  /// Option treated as highlighted when auto-highlight is enabled.
   T? get _highlightedOption {
     if (!_config.behaviorConfig.autoHighlight || _visibleOptions.isEmpty) {
       return null;
@@ -256,6 +310,10 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return _visibleOptions.first;
   }
 
+  /// Input candidate for the synthetic creatable option, if available.
+  ///
+  /// Returns `null` when creatable behavior is disabled or creation is not
+  /// allowed by the current query/selection/configuration.
   String? get _createOptionInput {
     if (!_config.isCreatable) {
       return null;
@@ -286,6 +344,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return rawInput;
   }
 
+  /// Whether the popup should be rendered for the current state.
   bool get _shouldRenderPopup {
     if (!_isOpen) {
       return false;
@@ -298,17 +357,20 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         _shouldShowEmptyState;
   }
 
+  /// Initializes the effective text controller.
   void _configureTextEditingController() {
     _ownsController = widget.configuration.controller == null;
     _controller = widget.configuration.controller ?? TextEditingController();
   }
 
+  /// Initializes the effective focus node and listener.
   void _configureFocusNode() {
     _ownsFocusNode = widget.configuration.focusNode == null;
     _focusNode = widget.configuration.focusNode ?? FocusNode();
     _focusNode.addListener(_handleFocusChange);
   }
 
+  /// Initializes async controller when async mode is enabled.
   void _configureAsyncController() {
     if (!_config.isAsync) {
       return;
@@ -329,6 +391,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     );
   }
 
+  /// Replaces controller when external controller reference changes.
   void _replaceController(TextEditingController? oldController) {
     if (_ownsController) {
       _controller.dispose();
@@ -337,6 +400,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _syncSelectionFromConfiguration(resetText: true);
   }
 
+  /// Replaces focus node when external focus-node reference changes.
   void _replaceFocusNode(FocusNode? oldFocusNode) {
     _focusNode.removeListener(_handleFocusChange);
     if (_ownsFocusNode) {
@@ -345,6 +409,10 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _configureFocusNode();
   }
 
+  /// Synchronizes local selected state from parent configuration.
+  ///
+  /// When [resetText] is `true`, input text is normalized to match selected
+  /// state according to mode-specific behavior.
   void _syncSelectionFromConfiguration({bool resetText = false}) {
     if (_config.isMultiple) {
       _selectedValues = List<T>.from(_config.values ?? const []);
@@ -366,6 +434,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
   }
 
+  /// Handles focus transitions and open/close behavior.
   void _handleFocusChange() {
     if (!mounted) {
       return;
@@ -389,6 +458,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     setState(() {});
   }
 
+  /// Handles query text changes from the input widget.
   void _handleInputChanged(String value) {
     if (_config.isAsync) {
       _requestAsyncOptions();
@@ -397,6 +467,12 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     setState(() {});
   }
 
+  /// Clears query and selection according to current mode.
+  ///
+  /// Side effects:
+  /// - emits `onChanged`/`onValuesChanged`;
+  /// - may trigger async reload on focused async fields;
+  /// - re-evaluates popup visibility.
   void _clearField() {
     if (_config.isMultiple) {
       setState(() {
@@ -418,6 +494,10 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _syncOverlayVisibility(forceOpen: _focusNode.hasFocus);
   }
 
+  /// Requests async options for the current query.
+  ///
+  /// Respects [AutocompleteAsyncConfig.minQueryLength],
+  /// [AutocompleteAsyncConfig.loadOnFocus], and debounce settings.
   void _requestAsyncOptions({bool immediate = false}) {
     final query = _controller.text;
     final asyncConfig = _config.asyncConfig!;
@@ -449,6 +529,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     );
   }
 
+  /// Selects [option], with optional toggle behavior for already-selected rows.
   void _selectOption(T option) {
     if (_config.behaviorConfig.toggleSelectionOnTap &&
         _isOptionSelected(option)) {
@@ -480,6 +561,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _afterSelection();
   }
 
+  /// Creates and selects a synthetic option from the current query.
   void _handleCreateOption() {
     final input = _createOptionInput;
     if (input == null) {
@@ -502,6 +584,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     setState(() {});
   }
 
+  /// Applies post-selection focus/open behavior.
   void _afterSelection() {
     final shouldClose = _config.behaviorConfig.closeOnSelect &&
         !_config.behaviorConfig.disableCloseOnSelect;
@@ -521,6 +604,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
   }
 
+  /// Deselects [option] from the current selection set.
   void _deselectOption(T option) {
     if (_config.isMultiple) {
       if (_isFixedChip(option)) {
@@ -546,6 +630,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _afterSelection();
   }
 
+  /// Removes [value] via chip delete interactions.
   void _removeValue(T value) {
     if (_isFixedChip(value)) {
       return;
@@ -559,6 +644,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _config.onValuesChanged?.call(nextValues);
   }
 
+  /// Handles taps outside the field/popup region.
   void _handleTapOutside() {
     if (_focusNode.hasFocus) {
       _focusNode.unfocus();
@@ -567,6 +653,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
   }
 
+  /// Opens or closes popup based on current state predicates.
   void _syncOverlayVisibility({bool forceOpen = false}) {
     final shouldOpen = (forceOpen || _focusNode.hasFocus) &&
         (_isLoading ||
@@ -580,6 +667,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
   }
 
+  /// Whether empty state should be rendered for the current query/state.
   bool get _shouldShowEmptyState {
     if (_isLoading) {
       return false;
@@ -603,6 +691,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return meetsMinimum || allowEmptyFocusLoad;
   }
 
+  /// Opens popup overlay if closed.
   void _openPopup() {
     if (_isOpen) {
       return;
@@ -613,6 +702,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     });
   }
 
+  /// Closes popup overlay if open.
   void _closePopup() {
     if (!_isOpen) {
       return;
@@ -623,6 +713,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     });
   }
 
+  /// Whether options should be shown for [query].
   bool _shouldShowOptionsForQuery(String query) {
     if (_config.behaviorConfig.showOptionsOnEmptyInput) {
       return true;
@@ -630,6 +721,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return query.trim().isNotEmpty;
   }
 
+  /// Returns whether [option] is currently selected.
   bool _isOptionSelected(T option) {
     if (_config.isMultiple) {
       return _selectedValues.any((selected) => _isEqual(option, selected));
@@ -637,10 +729,12 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return _selectedValue != null && _isEqual(option, _selectedValue as T);
   }
 
+  /// Returns whether [input] matches any option in [options].
   bool _matchesExistingOption(String input, List<T> options) {
     return options.any((option) => _matchesInput(option, input));
   }
 
+  /// Returns whether [option] label matches [input] per creatable config.
   bool _matchesInput(T option, String input) {
     final creatable = _config.creatableConfig;
     if (creatable?.optionMatchesInput case final matcher?) {
@@ -659,10 +753,12 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return transform(optionLabel) == transform(normalizedInput);
   }
 
+  /// Compares two options with custom equality when provided.
   bool _isEqual(T option, T value) {
     return _config.isOptionEqualToValue?.call(option, value) ?? option == value;
   }
 
+  /// Returns whether [value] is configured as a non-removable fixed chip.
   bool _isFixedChip(T value) {
     final chipConfig = _config.chipConfig;
     if (chipConfig == null) {
@@ -671,6 +767,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return chipConfig.fixedValues.any((item) => _isEqual(item, value));
   }
 
+  /// Clears/normalizes query text when the field loses focus.
   void _clearQueryOnBlur() {
     if (_config.isMultiple || _selectedValue == null) {
       _controller.clear();
@@ -679,6 +776,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _controller.text = _config.getOptionLabel(_selectedValue as T);
   }
 
+  /// Measures rendered field width for popup alignment.
   void _measureFieldWidth() {
     final context = _fieldKey.currentContext;
     if (context == null) {
@@ -693,6 +791,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
   }
 
+  /// Resolves field bounds in overlay coordinate space.
   Rect? _resolveTargetRect(BuildContext overlayContext) {
     final fieldContext = _fieldKey.currentContext;
     if (fieldContext == null) {
@@ -713,6 +812,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return origin & fieldRenderObject.size;
   }
 
+  /// Computes popup placement while honoring viewport and keyboard insets.
+  ///
+  /// Returns `null` when no usable space exists above or below the field.
   _PopupPlacement? _resolvePopupPlacement({
     required BuildContext overlayContext,
     required Rect targetRect,
@@ -780,6 +882,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     );
   }
 
+  /// Detects whether parent-provided selection changed externally.
   bool _didExternalSelectionChange(
     AutocompleteFieldConfiguration<T> oldConfiguration,
   ) {
@@ -797,6 +900,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return !_isEqual(previous, current);
   }
 
+  /// List equality using configured option equality semantics.
   bool _listEquals(List<T> a, List<T> b) {
     if (a.length != b.length) {
       return false;
@@ -809,6 +913,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return true;
   }
 
+  /// Builds clear button when enabled and content exists.
   Widget? _buildClearButton() {
     if (!_config.clearButtonConfig.enabled ||
         !_config.enabled ||
@@ -825,6 +930,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     );
   }
 
+  /// Builds dropdown indicator button when enabled.
   Widget? _buildDropdownButton() {
     if (!_config.dropdownButtonConfig.enabled || !_config.enabled) {
       return null;
@@ -840,6 +946,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     );
   }
 
+  /// Builds trailing action container with clear/dropdown buttons.
   Widget? _buildTrailingButtons() {
     final clearButton = _buildClearButton();
     final dropdownButton = _buildDropdownButton();
@@ -856,6 +963,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     );
   }
 
+  /// Whether there is visible content that can be cleared.
   bool get _hasContentToClear {
     if (_controller.text.isNotEmpty) {
       return true;
@@ -866,6 +974,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     return _selectedValue != null;
   }
 
+  /// Handles dropdown indicator button presses.
   void _handleDropdownButtonPressed() {
     if (!_focusNode.hasFocus) {
       _focusNode.requestFocus();

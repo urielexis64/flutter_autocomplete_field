@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import '../configs/autocomplete_selection_config.dart';
 import '../models/autocomplete_option_state.dart';
 
+/// Interactive popup row for one autocomplete option.
+///
+/// The tile can be rendered with a custom [builder] or a built-in default that
+/// shows label text and an optional selected indicator.
 class PopupOptionTile<T> extends StatelessWidget {
+  /// Creates a popup option tile.
   const PopupOptionTile({
     required this.state,
     required this.onTap,
@@ -13,13 +18,22 @@ class PopupOptionTile<T> extends StatelessWidget {
     super.key,
   });
 
+  /// Immutable option snapshot used for rendering decisions.
   final AutocompleteOptionState<T> state;
+
+  /// Tap callback, ignored when [state.isDisabled] is `true`.
   final VoidCallback? onTap;
+
+  /// Optional custom row builder.
   final Widget Function(
     BuildContext context,
     AutocompleteOptionState<T> option,
   )? builder;
+
+  /// Selection rendering config used by the default tile.
   final AutocompleteSelectionConfig<T> selectionConfig;
+
+  /// Optional key forwarded to the tappable surface.
   final Key? tileKey;
 
   @override
@@ -44,13 +58,18 @@ class PopupOptionTile<T> extends StatelessWidget {
   }
 }
 
+/// Built-in option row used when no custom option builder is supplied.
 class _DefaultOptionTile<T> extends StatelessWidget {
+  /// Creates the default popup option row used when no custom builder exists.
   const _DefaultOptionTile({
     required this.state,
     required this.selectionConfig,
   });
 
+  /// Immutable option snapshot.
   final AutocompleteOptionState<T> state;
+
+  /// Selection rendering behavior.
   final AutocompleteSelectionConfig<T> selectionConfig;
 
   @override
