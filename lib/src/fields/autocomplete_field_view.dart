@@ -48,6 +48,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   T? _selectedValue;
   List<T> _asyncOptions = const [];
   bool _isLoading = false;
+  bool _isDebouncing = false;
   bool _isOpen = false;
   double? _fieldWidth;
 
@@ -230,6 +231,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     if (!_shouldShowOptionsForQuery(query)) {
       return const [];
     }
+    if (_config.isAsync && _isDebouncing) {
+      return const [];
+    }
 
     var options = applyAutocompleteFilter<T>(
       options: _allOptions,
@@ -267,6 +271,11 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
     if (_config.isMultiple &&
         _matchesExistingOption(rawInput, _selectedValues)) {
+      return null;
+    }
+    if (!_config.isMultiple &&
+        _selectedValue != null &&
+        _matchesInput(_selectedValue as T, rawInput)) {
       return null;
     }
     if (creatable.shouldShowCreateOption != null &&
@@ -310,6 +319,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
           return;
         }
         setState(() {
+          _isDebouncing = false;
           _asyncOptions = update.options;
           _isLoading = update.isLoading;
         });
@@ -417,9 +427,19 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       setState(() {
         _asyncOptions = const [];
         _isLoading = false;
+        _isDebouncing = false;
       });
       return;
     }
+
+    final shouldDebounce =
+        !immediate && asyncConfig.debounceDuration > Duration.zero;
+    setState(() {
+      _isDebouncing = shouldDebounce;
+      if (!shouldDebounce && !asyncConfig.retainPreviousOptionsWhileLoading) {
+        _asyncOptions = const [];
+      }
+    });
 
     _asyncController?.request(
       query,
@@ -561,6 +581,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   bool get _shouldShowEmptyState {
     if (_isLoading) {
+      return false;
+    }
+    if (_isDebouncing) {
       return false;
     }
     final query = _controller.text;

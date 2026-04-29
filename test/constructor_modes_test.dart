@@ -252,6 +252,78 @@ void main() {
     expect(find.text('Banana'), findsNothing);
   });
 
+  testWidgets('async popup shows loader while waiting without empty flash', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.async(
+          asyncConfig: AutocompleteAsyncConfig(
+            optionsBuilder: (query) async {
+              await Future<void>.delayed(const Duration(milliseconds: 60));
+              return ['Apple', 'Banana'];
+            },
+            debounceDuration: const Duration(milliseconds: 120),
+            minQueryLength: 1,
+          ),
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'City'),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'a');
+    await tester.pump();
+
+    expect(findPopupSurface(), findsNothing);
+    await tester.pump(const Duration(milliseconds: 121));
+
+    expect(findPopupSurface(), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(findPopupText('No options'), findsNothing);
+
+    await tester.pumpAndSettle();
+    expect(findPopupText('Apple'), findsOneWidget);
+  });
+
+  testWidgets('async requests are debounced while typing', (tester) async {
+    final queries = <String>[];
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.async(
+          asyncConfig: AutocompleteAsyncConfig(
+            optionsBuilder: (query) async {
+              queries.add(query);
+              return ['Apple', 'Banana']
+                  .where((option) => option.toLowerCase().contains(query))
+                  .toList(growable: false);
+            },
+            debounceDuration: const Duration(milliseconds: 150),
+            minQueryLength: 1,
+          ),
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'City'),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'a');
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.enterText(find.byType(TextField), 'ap');
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.enterText(find.byType(TextField), 'app');
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(queries, isEmpty);
+
+    await tester.pump(const Duration(milliseconds: 60));
+    await tester.pumpAndSettle();
+
+    expect(queries, ['app']);
+    expect(findPopupText('Apple'), findsOneWidget);
+  });
+
   testWidgets('async multiple supports repeated selection', (tester) async {
     var selected = <String>[];
 
