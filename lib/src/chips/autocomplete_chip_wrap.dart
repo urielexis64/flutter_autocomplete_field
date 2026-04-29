@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../configs/autocomplete_chip_config.dart';
 import '../configs/autocomplete_rendering_config.dart';
+import '../fields/input_decoration_utils.dart';
 import '../models/autocomplete_chip_state.dart';
 import '../models/autocomplete_typedefs.dart';
 import '../theme/autocomplete_defaults.dart';
-import '../fields/input_decoration_utils.dart';
 
 class AutocompleteChipWrap<T> extends StatelessWidget {
   const AutocompleteChipWrap({
@@ -59,32 +59,61 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
             isFocused: focusNode.hasFocus,
             isEmpty: controller.text.isEmpty && values.isEmpty,
             decoration: mergeAutocompleteSuffixIcon(decoration, suffixIcon),
-            child: Wrap(
-              spacing: chipConfig.spacing,
-              runSpacing: chipConfig.runSpacing,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                ...chips,
-                if (!readOnly)
-                  SizedBox(
-                    width: inputWidth,
-                    child: TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      enabled: enabled,
-                      autofocus: autofocus,
-                      decoration: const InputDecoration(
-                        isCollapsed: true,
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      onChanged: onChanged,
-                    ),
-                  ),
-              ],
+            child: _buildChipArea(
+              constraints: constraints,
+              chips: chips,
+              inputWidth: inputWidth,
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildChipArea({
+    required BoxConstraints constraints,
+    required List<Widget> chips,
+    required double inputWidth,
+  }) {
+    final content = SizedBox(
+      width: constraints.maxWidth,
+      child: Wrap(
+        spacing: chipConfig.spacing,
+        runSpacing: chipConfig.runSpacing,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          ...chips,
+          if (!readOnly)
+            SizedBox(
+              width: inputWidth,
+              child: TextField(
+                controller: controller,
+                focusNode: focusNode,
+                enabled: enabled,
+                autofocus: autofocus,
+                decoration: const InputDecoration(
+                  isCollapsed: true,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                onChanged: onChanged,
+              ),
+            ),
+        ],
+      ),
+    );
+
+    final maxHeight = chipConfig.maxInputAreaHeight;
+    if (maxHeight == null) {
+      return content;
+    }
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: SingleChildScrollView(
+        key: const ValueKey<String>('autocomplete-chip-scroll-area'),
+        primary: false,
+        child: content,
       ),
     );
   }
@@ -106,8 +135,8 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     }
 
     final shouldCollapse = chipConfig.limitTags != null &&
-        !focusNode.hasFocus &&
-        chips.length > chipConfig.limitTags!;
+        chips.length > chipConfig.limitTags! &&
+        (chipConfig.limitTagsWhenFocused || !focusNode.hasFocus);
     final visible = shouldCollapse
         ? chips.take(chipConfig.limitTags!).toList(growable: false)
         : chips;
@@ -115,8 +144,12 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     final widgets =
         visible.map((chip) => _buildChip(context, chip)).toList(growable: true);
 
-    if (shouldCollapse) {
-      widgets.add(InputChip(label: Text('+${chips.length - visible.length}')));
+    if (shouldCollapse && chipConfig.showHiddenCountChip) {
+      final hiddenCount = chips.length - visible.length;
+      widgets.add(
+        chipConfig.hiddenCountChipBuilder?.call(context, hiddenCount) ??
+            InputChip(label: Text('+$hiddenCount')),
+      );
     }
 
     return widgets;

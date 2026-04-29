@@ -199,6 +199,13 @@ The package intentionally leans on Flutter theming primitives:
 - use `AutocompleteChipConfig` for chip spacing, limits, and delete affordances
 - use `AutocompleteRenderingConfig` when you need fully custom rows or chips
 
+`AutocompleteChipConfig` also supports focused-state tag limiting and capped
+chip/input area growth:
+
+- `limitTagsWhenFocused` keeps `limitTags` applied while typing
+- `showHiddenCountChip` controls the `+N` summary indicator
+- `maxInputAreaHeight` enables internal scrolling past a height limit
+
 ## Accessibility Notes
 
 - The package uses Flutter text field, chip, and tap semantics instead of web ARIA roles.

@@ -175,6 +175,56 @@ void main() {
     );
   });
 
+  testWidgets(
+    'popup scrolling works when chip area has maxInputAreaHeight',
+    (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.multiple(
+            options: List<String>.generate(30, (index) => 'Option $index'),
+            values: const [
+              'Option 0',
+              'Option 1',
+              'Option 2',
+              'Option 3',
+              'Option 4',
+              'Option 5',
+              'Option 6',
+              'Option 7',
+            ],
+            getOptionLabel: (option) => option,
+            chipConfig: const AutocompleteChipConfig<String>(
+              maxInputAreaHeight: 90,
+            ),
+            behaviorConfig: const AutocompleteBehaviorConfig(
+              closeOnSelect: false,
+              clearInputOnSelect: true,
+            ),
+            decoration: const InputDecoration(labelText: 'Tags'),
+          ),
+          width: 240,
+        ),
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('autocomplete-dropdown-button')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(findPopupSurface(), findsOneWidget);
+      final popupScrollView = find.descendant(
+        of: findPopupSurface(),
+        matching: find.byType(CustomScrollView),
+      );
+      expect(popupScrollView, findsOneWidget);
+
+      await tester.drag(popupScrollView, const Offset(0, -120));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('empty popup is shown when there are no matching options', (
     tester,
   ) async {

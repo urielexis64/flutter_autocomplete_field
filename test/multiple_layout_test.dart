@@ -57,6 +57,88 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('limitTags remains applied while focused by default', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.multiple(
+          options: const ['Alpha', 'Beta', 'Gamma', 'Delta'],
+          values: const ['Alpha', 'Beta', 'Gamma', 'Delta'],
+          getOptionLabel: (option) => option,
+          chipConfig: const AutocompleteChipConfig<String>(limitTags: 2),
+          decoration: const InputDecoration(labelText: 'Tags'),
+        ),
+        width: 220,
+      ),
+    );
+
+    final field = find.byWidgetPredicate(
+      (widget) =>
+          widget is InputDecorator && widget.decoration.labelText == 'Tags',
+    );
+    expect(
+        find.descendant(of: field, matching: find.text('+2')), findsOneWidget);
+    expect(
+        find.descendant(of: field, matching: find.text('Gamma')), findsNothing);
+    expect(
+        find.descendant(of: field, matching: find.text('Delta')), findsNothing);
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+
+    expect(
+        find.descendant(of: field, matching: find.text('+2')), findsOneWidget);
+    expect(
+        find.descendant(of: field, matching: find.text('Gamma')), findsNothing);
+    expect(
+        find.descendant(of: field, matching: find.text('Delta')), findsNothing);
+  });
+
+  testWidgets('maxInputAreaHeight caps chip/input area height with scroll', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.multiple(
+          options: const [
+            'Alpha',
+            'Beta',
+            'Gamma',
+            'Delta',
+            'Epsilon',
+            'Zeta',
+            'Eta',
+            'Theta',
+          ],
+          values: const [
+            'Alpha',
+            'Beta',
+            'Gamma',
+            'Delta',
+            'Epsilon',
+            'Zeta',
+            'Eta',
+            'Theta',
+          ],
+          getOptionLabel: (option) => option,
+          chipConfig: const AutocompleteChipConfig<String>(
+            maxInputAreaHeight: 90,
+          ),
+          decoration: const InputDecoration(labelText: 'Tags'),
+        ),
+        width: 180,
+      ),
+    );
+
+    final scrollArea = find.byKey(
+      const ValueKey<String>('autocomplete-chip-scroll-area'),
+    );
+    expect(scrollArea, findsOneWidget);
+    final scrollAreaSize = tester.getSize(scrollArea);
+    expect(scrollAreaSize.height, lessThanOrEqualTo(90));
+  });
+
   testWidgets(
     'label floats when focused, when text exists, and when chips exist',
     (tester) async {

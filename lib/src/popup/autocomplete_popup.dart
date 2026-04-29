@@ -113,7 +113,9 @@ class AutocompletePopup<T> extends StatelessWidget {
 
     return RawScrollbar(
       padding: EdgeInsets.zero,
+      interactive: false,
       child: CustomScrollView(
+        primary: false,
         shrinkWrap: true,
         slivers: _buildSlivers(context),
       ),
