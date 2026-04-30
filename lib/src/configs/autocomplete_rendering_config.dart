@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../enums/autocomplete_highlight_match_scope.dart';
 import '../models/autocomplete_chip_state.dart';
 import '../models/autocomplete_option_state.dart';
 
@@ -13,6 +14,10 @@ class AutocompleteRenderingConfig<T> {
     this.groupBuilder,
     this.loadingBuilder,
     this.emptyBuilder,
+    this.highlightMatchesInDefaultOption = true,
+    this.highlightMatchCaseSensitive = false,
+    this.highlightMatchScope = AutocompleteHighlightMatchScope.allOccurrences,
+    this.highlightedMatchTextStyle,
   });
 
   /// Custom builder for popup option rows.
@@ -47,4 +52,22 @@ class AutocompleteRenderingConfig<T> {
 
   /// Custom empty-state widget when no options are visible.
   final Widget Function(BuildContext context, String query)? emptyBuilder;
+
+  /// Whether built-in option rows highlight query matches in the option label.
+  ///
+  /// This setting applies only when [optionBuilder] is null.
+  final bool highlightMatchesInDefaultOption;
+
+  /// Whether query matching used for highlighting is case-sensitive.
+  ///
+  /// Defaults to `false`, so `o` highlights both `o` and `O`.
+  final bool highlightMatchCaseSensitive;
+
+  /// Controls whether matching highlights include all matches or only the first.
+  final AutocompleteHighlightMatchScope highlightMatchScope;
+
+  /// Optional text style override used for highlighted match fragments.
+  ///
+  /// When null, the default uses medium-bold weight with theme primary color.
+  final TextStyle? highlightedMatchTextStyle;
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../enums/autocomplete_highlight_match_scope.dart';
 import '../configs/autocomplete_selection_config.dart';
 import '../models/autocomplete_option_state.dart';
 
@@ -14,6 +15,10 @@ class PopupOptionTile<T> extends StatelessWidget {
     required this.onTap,
     required this.builder,
     required this.selectionConfig,
+    this.highlightMatchesInDefaultOption = true,
+    this.highlightMatchCaseSensitive = false,
+    this.highlightMatchScope = AutocompleteHighlightMatchScope.allOccurrences,
+    this.highlightedMatchTextStyle,
     this.tileKey,
     super.key,
   });
@@ -32,6 +37,18 @@ class PopupOptionTile<T> extends StatelessWidget {
 
   /// Selection rendering config used by the default tile.
   final AutocompleteSelectionConfig<T> selectionConfig;
+
+  /// Whether the built-in tile highlights query matches in [state.label].
+  final bool highlightMatchesInDefaultOption;
+
+  /// Whether default match highlighting should be case-sensitive.
+  final bool highlightMatchCaseSensitive;
+
+  /// Whether highlights include all matches or only the first.
+  final AutocompleteHighlightMatchScope highlightMatchScope;
+
+  /// Optional style used by highlighted text segments in the default tile.
+  final TextStyle? highlightedMatchTextStyle;
 
   /// Optional key forwarded to the tappable surface.
   final Key? tileKey;
@@ -52,6 +69,10 @@ class PopupOptionTile<T> extends StatelessWidget {
             _DefaultOptionTile(
               state: state,
               selectionConfig: selectionConfig,
+              highlightMatchesInDefaultOption: highlightMatchesInDefaultOption,
+              highlightMatchCaseSensitive: highlightMatchCaseSensitive,
+              highlightMatchScope: highlightMatchScope,
+              highlightedMatchTextStyle: highlightedMatchTextStyle,
             ),
       ),
     );
@@ -64,6 +85,10 @@ class _DefaultOptionTile<T> extends StatelessWidget {
   const _DefaultOptionTile({
     required this.state,
     required this.selectionConfig,
+    required this.highlightMatchesInDefaultOption,
+    required this.highlightMatchCaseSensitive,
+    required this.highlightMatchScope,
+    this.highlightedMatchTextStyle,
   });
 
   /// Immutable option snapshot.
@@ -72,20 +97,30 @@ class _DefaultOptionTile<T> extends StatelessWidget {
   /// Selection rendering behavior.
   final AutocompleteSelectionConfig<T> selectionConfig;
 
+  /// Whether to highlight query matches in the label.
+  final bool highlightMatchesInDefaultOption;
+
+  /// Whether highlight matching is case-sensitive.
+  final bool highlightMatchCaseSensitive;
+
+  /// Whether highlights include all matches or only the first.
+  final AutocompleteHighlightMatchScope highlightMatchScope;
+
+  /// Optional style for highlighted segments.
+  final TextStyle? highlightedMatchTextStyle;
+
   @override
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme.bodyLarge;
+    final effectiveTextStyle = state.isDisabled
+        ? textStyle?.copyWith(color: Theme.of(context).disabledColor)
+        : textStyle;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              state.label,
-              style: state.isDisabled
-                  ? textStyle?.copyWith(color: Theme.of(context).disabledColor)
-                  : textStyle,
-            ),
+            child: _buildLabel(context, effectiveTextStyle),
           ),
           if (state.isSelected && selectionConfig.showSelectionIndicator)
             selectionConfig.selectionIndicatorBuilder?.call(context, state) ??
@@ -93,5 +128,86 @@ class _DefaultOptionTile<T> extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildLabel(BuildContext context, TextStyle? textStyle) {
+    final input = state.input.trim();
+    if (!highlightMatchesInDefaultOption || input.isEmpty) {
+      return Text(state.label, style: textStyle);
+    }
+
+    return Text.rich(
+      TextSpan(
+        style: textStyle,
+        children: _buildHighlightSpans(
+          context: context,
+          label: state.label,
+          query: input,
+          baseStyle: textStyle,
+        ),
+      ),
+    );
+  }
+
+  List<TextSpan> _buildHighlightSpans({
+    required BuildContext context,
+    required String label,
+    required String query,
+    required TextStyle? baseStyle,
+  }) {
+    final source = highlightMatchCaseSensitive ? label : label.toLowerCase();
+    final target = highlightMatchCaseSensitive ? query : query.toLowerCase();
+    if (target.isEmpty) {
+      return <TextSpan>[TextSpan(text: label, style: baseStyle)];
+    }
+
+    final highlightStyle = highlightedMatchTextStyle ??
+        baseStyle?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.primary,
+        ) ??
+        TextStyle(
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.primary,
+        );
+
+    final spans = <TextSpan>[];
+    var start = 0;
+    var highlightedCount = 0;
+    while (start < label.length) {
+      final matchIndex = source.indexOf(target, start);
+      if (matchIndex < 0) {
+        spans.add(
+          TextSpan(text: label.substring(start), style: baseStyle),
+        );
+        break;
+      }
+
+      if (matchIndex > start) {
+        spans.add(
+          TextSpan(text: label.substring(start, matchIndex), style: baseStyle),
+        );
+      }
+
+      final matchEnd = matchIndex + target.length;
+      final shouldHighlight =
+          highlightMatchScope == AutocompleteHighlightMatchScope.allOccurrences
+              ? true
+              : highlightedCount == 0;
+      spans.add(
+        TextSpan(
+          text: label.substring(matchIndex, matchEnd),
+          style: shouldHighlight ? highlightStyle : baseStyle,
+        ),
+      );
+      if (shouldHighlight) {
+        highlightedCount += 1;
+      }
+      start = matchEnd;
+    }
+
+    return spans.isEmpty
+        ? <TextSpan>[TextSpan(text: label, style: baseStyle)]
+        : spans;
   }
 }

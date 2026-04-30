@@ -5,6 +5,7 @@ import '../configs/autocomplete_grouping_config.dart';
 import '../configs/autocomplete_popup_config.dart';
 import '../configs/autocomplete_rendering_config.dart';
 import '../configs/autocomplete_selection_config.dart';
+import '../enums/autocomplete_highlight_match_scope.dart';
 import '../models/autocomplete_option_group.dart';
 import '../models/autocomplete_option_state.dart';
 import '../models/autocomplete_typedefs.dart';
@@ -349,6 +350,13 @@ class AutocompletePopup<T> extends StatelessWidget {
       onTap: () => onOptionTap(option),
       builder: renderingConfig?.optionBuilder,
       selectionConfig: selectionConfig,
+      highlightMatchesInDefaultOption:
+          renderingConfig?.highlightMatchesInDefaultOption ?? true,
+      highlightMatchCaseSensitive:
+          renderingConfig?.highlightMatchCaseSensitive ?? false,
+      highlightMatchScope: renderingConfig?.highlightMatchScope ??
+          AutocompleteHighlightMatchScope.allOccurrences,
+      highlightedMatchTextStyle: renderingConfig?.highlightedMatchTextStyle,
       tileKey: ValueKey<String>('autocomplete-option-$label'),
     );
   }

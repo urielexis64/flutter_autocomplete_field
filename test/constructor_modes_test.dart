@@ -221,6 +221,113 @@ void main() {
     );
   });
 
+  testWidgets(
+    'default option rows highlight matching query text case-insensitively',
+    (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.single(
+            options: const ['Hello', 'World'],
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Greeting'),
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), 'O');
+      await tester.pumpAndSettle();
+
+      final helloText = _popupOptionLabelText(tester, 'Hello');
+      final worldText = _popupOptionLabelText(tester, 'World');
+      final helloSpan = helloText.textSpan as TextSpan?;
+      final worldSpan = worldText.textSpan as TextSpan?;
+
+      expect(helloSpan, isNotNull);
+      expect(worldSpan, isNotNull);
+      expect(helloSpan!.toPlainText(), 'Hello');
+      expect(worldSpan!.toPlainText(), 'World');
+      expect(helloSpan.children!.length, greaterThan(1));
+      expect(worldSpan.children!.length, greaterThan(1));
+    },
+  );
+
+  testWidgets('option match highlighting can be disabled', (tester) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Hello', 'World'],
+          getOptionLabel: (option) => option,
+          renderingConfig: const AutocompleteRenderingConfig<String>(
+            highlightMatchesInDefaultOption: false,
+          ),
+          decoration: const InputDecoration(labelText: 'Greeting'),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'o');
+    await tester.pumpAndSettle();
+
+    final helloText = _popupOptionLabelText(tester, 'Hello');
+    final worldText = _popupOptionLabelText(tester, 'World');
+    expect(helloText.data, 'Hello');
+    expect(worldText.data, 'World');
+    expect(helloText.textSpan, isNull);
+    expect(worldText.textSpan, isNull);
+  });
+
+  testWidgets('option highlighting can be limited to first occurrence', (
+    tester,
+  ) async {
+    const highlightColor = Colors.red;
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Fooboo', 'World'],
+          getOptionLabel: (option) => option,
+          renderingConfig: const AutocompleteRenderingConfig<String>(
+            highlightMatchScope:
+                AutocompleteHighlightMatchScope.firstOccurrence,
+            highlightedMatchTextStyle: TextStyle(color: highlightColor),
+          ),
+          decoration: const InputDecoration(labelText: 'Greeting'),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'o');
+    await tester.pumpAndSettle();
+
+    final foobooText = _popupOptionLabelText(tester, 'Fooboo');
+    expect(_countHighlightedSegments(foobooText, highlightColor), 1);
+  });
+
+  testWidgets('option highlighting can include all occurrences',
+      (tester) async {
+    const highlightColor = Colors.red;
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Fooboo', 'World'],
+          getOptionLabel: (option) => option,
+          renderingConfig: const AutocompleteRenderingConfig<String>(
+            highlightMatchScope: AutocompleteHighlightMatchScope.allOccurrences,
+            highlightedMatchTextStyle: TextStyle(color: highlightColor),
+          ),
+          decoration: const InputDecoration(labelText: 'Greeting'),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'o');
+    await tester.pumpAndSettle();
+
+    final foobooText = _popupOptionLabelText(tester, 'Fooboo');
+    expect(_countHighlightedSegments(foobooText, highlightColor), 4);
+  });
+
   testWidgets('async single loads options from the async builder', (
     tester,
   ) async {
@@ -433,4 +540,34 @@ void main() {
     formKey.currentState!.save();
     expect(savedValue, 'Banana');
   });
+}
+
+Text _popupOptionLabelText(WidgetTester tester, String label) {
+  final tile = find.byKey(ValueKey<String>('autocomplete-option-$label'));
+  final labelTextFinder =
+      find.descendant(of: tile, matching: find.byType(Text)).first;
+  return tester.widget<Text>(labelTextFinder);
+}
+
+int _countHighlightedSegments(Text text, Color color) {
+  final span = text.textSpan;
+  if (span == null) {
+    return 0;
+  }
+  return _countHighlightedSegmentsInSpan(span, color);
+}
+
+int _countHighlightedSegmentsInSpan(InlineSpan span, Color color) {
+  if (span is! TextSpan) {
+    return 0;
+  }
+
+  var count = 0;
+  if ((span.text?.isNotEmpty ?? false) && span.style?.color == color) {
+    count += 1;
+  }
+  for (final child in span.children ?? const <InlineSpan>[]) {
+    count += _countHighlightedSegmentsInSpan(child, color);
+  }
+  return count;
 }
