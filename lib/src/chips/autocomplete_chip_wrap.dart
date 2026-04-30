@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../configs/autocomplete_chip_config.dart';
 import '../configs/autocomplete_rendering_config.dart';
+import '../enums/autocomplete_chip_layout_mode.dart';
 import '../fields/input_decoration_utils.dart';
 import '../models/autocomplete_chip_state.dart';
 import '../models/autocomplete_typedefs.dart';
@@ -115,7 +116,28 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     required List<Widget> chips,
     required double inputWidth,
   }) {
+    if (chipConfig.layoutMode == AutocompleteChipLayoutMode.horizontalScroll) {
+      return _buildHorizontalChipArea(
+        constraints: constraints,
+        chips: chips,
+        inputWidth: inputWidth,
+      );
+    }
+
+    return _buildWrapChipArea(
+      constraints: constraints,
+      chips: chips,
+      inputWidth: inputWidth,
+    );
+  }
+
+  Widget _buildWrapChipArea({
+    required BoxConstraints constraints,
+    required List<Widget> chips,
+    required double inputWidth,
+  }) {
     final content = SizedBox(
+      key: const ValueKey<String>('autocomplete-chip-layout-wrap'),
       width: constraints.maxWidth,
       child: Wrap(
         spacing: chipConfig.spacing,
@@ -156,6 +178,54 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
         child: content,
       ),
     );
+  }
+
+  Widget _buildHorizontalChipArea({
+    required BoxConstraints constraints,
+    required List<Widget> chips,
+    required double inputWidth,
+  }) {
+    final children = <Widget>[
+      ..._withHorizontalSpacing(chips),
+      if (!readOnly)
+        SizedBox(
+          width: inputWidth,
+          child: TextField(
+            controller: controller,
+            focusNode: focusNode,
+            enabled: enabled,
+            autofocus: autofocus,
+            decoration: const InputDecoration(
+              isCollapsed: true,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            onChanged: onChanged,
+          ),
+        ),
+    ];
+
+    return SingleChildScrollView(
+      key: const ValueKey<String>('autocomplete-chip-layout-horizontal'),
+      primary: false,
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: constraints.maxWidth),
+        child: Row(children: children),
+      ),
+    );
+  }
+
+  List<Widget> _withHorizontalSpacing(List<Widget> children) {
+    if (children.isEmpty) {
+      return const [];
+    }
+    final spaced = <Widget>[children.first];
+    for (var index = 1; index < children.length; index += 1) {
+      spaced.add(SizedBox(width: chipConfig.spacing));
+      spaced.add(children[index]);
+    }
+    return spaced;
   }
 
   /// Builds visible chip widgets using default or custom renderers.

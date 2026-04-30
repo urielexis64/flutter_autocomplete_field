@@ -20,6 +20,7 @@ export 'src/configs/autocomplete_popup_config.dart';
 export 'src/configs/autocomplete_rendering_config.dart';
 export 'src/configs/autocomplete_selection_config.dart';
 export 'src/enums/autocomplete_match_from.dart';
+export 'src/enums/autocomplete_chip_layout_mode.dart';
 export 'src/fields/autocomplete_field.dart';
 export 'src/models/autocomplete_chip_state.dart';
 export 'src/models/autocomplete_option_state.dart';

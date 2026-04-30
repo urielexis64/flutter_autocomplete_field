@@ -57,6 +57,54 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('wrap chip layout is used by default', (tester) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.multiple(
+          options: const ['Alpha', 'Beta', 'Gamma', 'Delta'],
+          values: const ['Alpha', 'Beta', 'Gamma'],
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Tags'),
+        ),
+      ),
+    );
+
+    expect(
+      find.byKey(const ValueKey<String>('autocomplete-chip-layout-wrap')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('autocomplete-chip-layout-horizontal')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('horizontal chip layout can be enabled by config',
+      (tester) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.multiple(
+          options: const ['Alpha', 'Beta', 'Gamma', 'Delta'],
+          values: const ['Alpha', 'Beta', 'Gamma'],
+          getOptionLabel: (option) => option,
+          chipConfig: const AutocompleteChipConfig<String>(
+            layoutMode: AutocompleteChipLayoutMode.horizontalScroll,
+          ),
+          decoration: const InputDecoration(labelText: 'Tags'),
+        ),
+      ),
+    );
+
+    final horizontal = tester.widget<SingleChildScrollView>(
+      find.byKey(const ValueKey<String>('autocomplete-chip-layout-horizontal')),
+    );
+    expect(horizontal.scrollDirection, Axis.horizontal);
+    expect(
+      find.byKey(const ValueKey<String>('autocomplete-chip-layout-wrap')),
+      findsNothing,
+    );
+  });
+
   testWidgets('limitTags remains applied while focused by default', (
     tester,
   ) async {

@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../enums/autocomplete_chip_layout_mode.dart';
 import '../models/autocomplete_chip_state.dart';
 
 /// Configures chip rendering for multiple-selection modes.
@@ -12,6 +13,7 @@ class AutocompleteChipConfig<T> {
   const AutocompleteChipConfig({
     this.chipBuilder,
     this.fixedValues = const [],
+    this.layoutMode = AutocompleteChipLayoutMode.wrap,
     this.limitTags,
     this.limitTagsWhenFocused = true,
     this.showHiddenCountChip = true,
@@ -33,6 +35,12 @@ class AutocompleteChipConfig<T> {
   ///
   /// Matching is resolved by the field equality function, not by identity.
   final List<T> fixedValues;
+
+  /// Chip layout strategy for the selected-chip area.
+  ///
+  /// Use [AutocompleteChipLayoutMode.wrap] for multi-line growth, or
+  /// [AutocompleteChipLayoutMode.horizontalScroll] for a single scrolling row.
+  final AutocompleteChipLayoutMode layoutMode;
 
   /// Maximum number of chips to render before collapsing into a summary chip.
   ///
@@ -56,6 +64,8 @@ class AutocompleteChipConfig<T> {
   /// Maximum height for chip + input area before internal scrolling is used.
   ///
   /// Null allows the field to grow naturally with content.
+  ///
+  /// This setting applies to [AutocompleteChipLayoutMode.wrap].
   final double? maxInputAreaHeight;
 
   /// Custom icon for default chip delete actions.
