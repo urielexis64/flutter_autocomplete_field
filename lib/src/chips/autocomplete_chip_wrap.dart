@@ -153,7 +153,8 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
                 focusNode: focusNode,
                 enabled: enabled,
                 autofocus: autofocus,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
+                  hintText: decoration.hintText,
                   isCollapsed: true,
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
