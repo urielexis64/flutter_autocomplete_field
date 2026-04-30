@@ -93,6 +93,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// Whether an async request is currently in-flight.
   bool _isLoading = false;
 
+  /// Whether async options have been loaded at least once for current config.
+  bool _hasLoadedAsyncOptions = false;
+
   /// Whether an async next-page request is currently in-flight.
   bool _isLoadingMore = false;
 
@@ -299,6 +302,10 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   AutocompleteAsyncPaginationConfig<T>? get _paginationConfig =>
       _config.asyncConfig?.paginationConfig;
 
+  /// Whether query changes should issue new async requests.
+  bool get _reloadOnQueryChange =>
+      _config.asyncConfig?.reloadOnQueryChange ?? true;
+
   /// Source option list before query filtering.
   List<T> get _allOptions {
     if (_config.isAsync) {
@@ -404,6 +411,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return;
     }
     _resetAsyncPaginationState();
+    _hasLoadedAsyncOptions = false;
     final pagination = _paginationConfig;
     _asyncController = AsyncOptionsController<T>(
       config: _config.asyncConfig!,
@@ -423,6 +431,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
           _isDebouncing = false;
           _asyncOptions = update.options;
           _isLoading = update.isLoading;
+          if (!update.isLoading) {
+            _hasLoadedAsyncOptions = true;
+          }
           if (!update.isLoading && pagination != null) {
             _currentAsyncPage = pagination.initialPage;
             _hasMoreAsyncResults = _resolveHasMore(
@@ -549,15 +560,28 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     final asyncConfig = _config.asyncConfig!;
     _paginationRequestId += 1;
     _isLoadingMore = false;
+
+    if (!_reloadOnQueryChange && _hasLoadedAsyncOptions) {
+      setState(() {
+        _isDebouncing = false;
+        _isLoading = false;
+      });
+      return;
+    }
+
     final meetsMinimum = query.length >= asyncConfig.minQueryLength;
     final allowEmptyFocusLoad = query.isEmpty && asyncConfig.loadOnFocus;
     if (!meetsMinimum && !allowEmptyFocusLoad) {
       _asyncController?.cancel();
       setState(() {
-        _asyncOptions = const [];
+        if (_reloadOnQueryChange || !_hasLoadedAsyncOptions) {
+          _asyncOptions = const [];
+        }
         _isLoading = false;
         _isDebouncing = false;
-        _resetAsyncPaginationState();
+        if (_reloadOnQueryChange || !_hasLoadedAsyncOptions) {
+          _resetAsyncPaginationState();
+        }
       });
       return;
     }
@@ -1105,8 +1129,6 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     if (pagination.hasMore != null) {
       return pagination.hasMore!(page);
     }
-    print('Page length${page.length}');
-    print('Page size${pagination.pageSize}');
     return page.length >= pagination.pageSize;
   }
 

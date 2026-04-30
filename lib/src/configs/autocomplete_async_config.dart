@@ -22,6 +22,7 @@ class AutocompleteAsyncConfig<T> {
     this.debounceDuration = const Duration(milliseconds: 300),
     this.minQueryLength = 0,
     this.loadOnFocus = false,
+    this.reloadOnQueryChange = true,
     this.retainPreviousOptionsWhileLoading = true,
     this.paginationConfig,
   }) : assert(minQueryLength >= 0);
@@ -48,6 +49,12 @@ class AutocompleteAsyncConfig<T> {
   ///
   /// This is useful for "show suggestions on focus" experiences.
   final bool loadOnFocus;
+
+  /// Whether typing a new query should trigger a new async request.
+  ///
+  /// When `false`, options are loaded once, then subsequent input changes are
+  /// filtered locally using [AutocompleteFilterConfig].
+  final bool reloadOnQueryChange;
 
   /// Whether previous options should remain visible while a new request loads.
   ///

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../configs/autocomplete_chip_config.dart';
@@ -175,6 +177,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxHeight),
       child: SingleChildScrollView(
+        reverse: true,
         key: const ValueKey<String>('autocomplete-chip-scroll-area'),
         primary: false,
         child: content,
@@ -289,7 +292,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
   ) {
     final painter = TextPainter(
       text: TextSpan(
-        text: text.isEmpty ? hintText ?? ' ' : text,
+        text: text.isEmpty ? (hintText ?? ' ') : text,
         style: Theme.of(context).textTheme.bodyLarge,
       ),
       textDirection: Directionality.of(context),
@@ -298,6 +301,6 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
 
     final width =
         painter.width + AutocompleteDefaults.chipInputHorizontalPadding;
-    return width.clamp(AutocompleteDefaults.chipInputMinWidth, maxWidth);
+    return min(width, maxWidth);
   }
 }

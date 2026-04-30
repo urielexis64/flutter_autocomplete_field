@@ -359,6 +359,50 @@ void main() {
     expect(find.text('Banana'), findsNothing);
   });
 
+  testWidgets(
+    'async can load once and then filter locally without reloading',
+    (tester) async {
+      final queries = <String>[];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.async(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return const ['Hello', 'World'];
+              },
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+              reloadOnQueryChange: false,
+            ),
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Greeting'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+      expect(findPopupText('Hello'), findsOneWidget);
+      expect(findPopupText('World'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'o');
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+      expect(findPopupText('Hello'), findsOneWidget);
+      expect(findPopupText('World'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'wor');
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+      expect(findPopupText('Hello'), findsNothing);
+      expect(findPopupText('World'), findsOneWidget);
+    },
+  );
+
   testWidgets('async pagination appends options when scrolling near list end',
       (tester) async {
     var nonPagedCalls = 0;

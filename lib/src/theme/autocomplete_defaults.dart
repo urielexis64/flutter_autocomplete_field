@@ -10,5 +10,5 @@ class AutocompleteDefaults {
   static const double chipInputMinWidth = 72;
 
   /// Extra width added to measured input text for comfortable caret spacing.
-  static const double chipInputHorizontalPadding = 12;
+  static const double chipInputHorizontalPadding = 24;
 }
