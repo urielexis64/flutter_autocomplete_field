@@ -37,13 +37,20 @@ class AsyncOptionsUpdate<T> {
 /// their own error boundary if needed.
 class AsyncOptionsController<T> {
   /// Creates an async options coordinator with the given [config].
-  AsyncOptionsController({required this.config, required this.onUpdate});
+  AsyncOptionsController({
+    required this.config,
+    required this.onUpdate,
+    this.optionsBuilderOverride,
+  });
 
   /// Async configuration that defines debounce and loading behavior.
   final AutocompleteAsyncConfig<T> config;
 
   /// Callback invoked whenever loading state or options change.
   final void Function(AsyncOptionsUpdate<T> update) onUpdate;
+
+  /// Optional query loader override used by advanced async flows.
+  final Future<List<T>> Function(String query)? optionsBuilderOverride;
 
   Timer? _debounce;
   int _requestId = 0;
@@ -89,7 +96,9 @@ class AsyncOptionsController<T> {
       ),
     );
 
-    final options = await config.optionsBuilder(query);
+    final options = await (optionsBuilderOverride ?? config.optionsBuilder)(
+      query,
+    );
     if (requestId != _requestId) {
       return;
     }

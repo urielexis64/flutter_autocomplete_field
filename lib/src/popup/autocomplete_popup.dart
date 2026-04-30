@@ -43,6 +43,13 @@ class AutocompletePopup<T> extends StatelessWidget {
     this.createLabel,
     this.onCreateTap,
     this.createOptionBuilder,
+    this.onReachedListEnd,
+    this.loadMoreTriggerOffset = 120,
+    this.isLoadingMore = false,
+    this.hasMoreResults = false,
+    this.loadingMoreBuilder,
+    this.endOfListBuilder,
+    this.showEndOfListIndicator = false,
     super.key,
   });
 
@@ -94,6 +101,27 @@ class AutocompletePopup<T> extends StatelessWidget {
   /// Optional custom builder for the creatable option row.
   final Widget Function(BuildContext context, String input)?
       createOptionBuilder;
+
+  /// Callback fired when popup scrolling reaches near the bottom.
+  final VoidCallback? onReachedListEnd;
+
+  /// Distance from list end that triggers [onReachedListEnd].
+  final double loadMoreTriggerOffset;
+
+  /// Whether an additional page is currently loading.
+  final bool isLoadingMore;
+
+  /// Whether more paginated results are available.
+  final bool hasMoreResults;
+
+  /// Optional footer builder shown while loading more results.
+  final Widget Function(BuildContext context)? loadingMoreBuilder;
+
+  /// Optional footer builder shown when no more results are available.
+  final Widget Function(BuildContext context)? endOfListBuilder;
+
+  /// Whether to show end-of-list footer when [hasMoreResults] is `false`.
+  final bool showEndOfListIndicator;
 
   @override
   Widget build(BuildContext context) {
@@ -157,13 +185,16 @@ class AutocompletePopup<T> extends StatelessWidget {
       );
     }
 
-    return RawScrollbar(
-      padding: EdgeInsets.zero,
-      interactive: false,
-      child: CustomScrollView(
-        primary: false,
-        shrinkWrap: true,
-        slivers: _buildSlivers(context),
+    return NotificationListener<ScrollNotification>(
+      onNotification: _handleScrollNotification,
+      child: RawScrollbar(
+        padding: EdgeInsets.zero,
+        interactive: false,
+        child: CustomScrollView(
+          primary: false,
+          shrinkWrap: true,
+          slivers: _buildSlivers(context),
+        ),
       ),
     );
   }
@@ -187,6 +218,24 @@ class AutocompletePopup<T> extends StatelessWidget {
       if (verticalPadding.top > 0)
         SliverToBoxAdapter(child: SizedBox(height: verticalPadding.top)),
       ...contentSlivers,
+      if (isLoadingMore)
+        SliverToBoxAdapter(
+          child: loadingMoreBuilder?.call(context) ??
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(
+                  child: SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              ),
+        ),
+      if (!isLoadingMore &&
+          !hasMoreResults &&
+          showEndOfListIndicator &&
+          endOfListBuilder != null)
+        SliverToBoxAdapter(child: endOfListBuilder!.call(context)),
       if (verticalPadding.bottom > 0)
         SliverToBoxAdapter(child: SizedBox(height: verticalPadding.bottom)),
     ];
@@ -203,6 +252,25 @@ class AutocompletePopup<T> extends StatelessWidget {
           ),
         )
         .toList(growable: false);
+  }
+
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (onReachedListEnd == null ||
+        isLoading ||
+        isLoadingMore ||
+        !hasMoreResults ||
+        options.isEmpty) {
+      return false;
+    }
+    if (notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    final remaining =
+        notification.metrics.maxScrollExtent - notification.metrics.pixels;
+    if (remaining <= loadMoreTriggerOffset) {
+      onReachedListEnd!.call();
+    }
+    return false;
   }
 
   /// Produces content slivers for grouped/flat options and creatable action.

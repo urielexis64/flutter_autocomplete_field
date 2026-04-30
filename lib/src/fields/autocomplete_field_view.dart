@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../async/async_options_controller.dart';
 import '../chips/autocomplete_chip_wrap.dart';
+import '../configs/autocomplete_async_pagination_config.dart';
 import '../configs/autocomplete_creatable_config.dart';
 import '../configs/autocomplete_popup_config.dart';
 import '../filtering/default_filter.dart';
@@ -92,8 +93,20 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// Whether an async request is currently in-flight.
   bool _isLoading = false;
 
+  /// Whether an async next-page request is currently in-flight.
+  bool _isLoadingMore = false;
+
   /// Whether a debounced async request is pending.
   bool _isDebouncing = false;
+
+  /// Current loaded page number for async pagination.
+  int _currentAsyncPage = 0;
+
+  /// Whether additional async pages are available.
+  bool _hasMoreAsyncResults = false;
+
+  /// Token used to ignore stale async pagination responses.
+  int _paginationRequestId = 0;
 
   /// Whether popup is currently open.
   bool _isOpen = false;
@@ -237,6 +250,17 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
                     onCreateTap: _handleCreateOption,
                     createOptionBuilder: widget
                         .configuration.creatableConfig?.createOptionBuilder,
+                    onReachedListEnd: _paginationConfig != null
+                        ? _handlePopupReachedEnd
+                        : null,
+                    loadMoreTriggerOffset:
+                        _paginationConfig?.loadMoreTriggerOffset ?? 120,
+                    isLoadingMore: _isLoadingMore,
+                    hasMoreResults: _hasMoreAsyncResults,
+                    loadingMoreBuilder: _paginationConfig?.loadingMoreBuilder,
+                    endOfListBuilder: _paginationConfig?.endOfListBuilder,
+                    showEndOfListIndicator:
+                        _paginationConfig?.showEndOfListIndicator ?? false,
                   ),
                 ),
               ),
@@ -270,6 +294,10 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Short alias for current widget configuration.
   AutocompleteFieldConfiguration<T> get _config => widget.configuration;
+
+  /// Optional async pagination configuration for current field mode.
+  AutocompleteAsyncPaginationConfig<T>? get _paginationConfig =>
+      _config.asyncConfig?.paginationConfig;
 
   /// Source option list before query filtering.
   List<T> get _allOptions {
@@ -375,16 +403,34 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     if (!_config.isAsync) {
       return;
     }
+    _resetAsyncPaginationState();
+    final pagination = _paginationConfig;
     _asyncController = AsyncOptionsController<T>(
       config: _config.asyncConfig!,
+      optionsBuilderOverride: pagination == null
+          ? null
+          : (query) => pagination.optionsPageBuilder(
+                query,
+                pagination.initialPage,
+                pagination.pageSize,
+              ),
       onUpdate: (update) {
         if (!mounted || update.query != _controller.text) {
           return;
         }
+        final pagination = _paginationConfig;
         setState(() {
           _isDebouncing = false;
           _asyncOptions = update.options;
           _isLoading = update.isLoading;
+          if (!update.isLoading && pagination != null) {
+            _currentAsyncPage = pagination.initialPage;
+            _hasMoreAsyncResults = _resolveHasMore(
+              page: update.options,
+              pagination: pagination,
+            );
+            _isLoadingMore = false;
+          }
         });
         _syncOverlayVisibility();
       },
@@ -501,6 +547,8 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   void _requestAsyncOptions({bool immediate = false}) {
     final query = _controller.text;
     final asyncConfig = _config.asyncConfig!;
+    _paginationRequestId += 1;
+    _isLoadingMore = false;
     final meetsMinimum = query.length >= asyncConfig.minQueryLength;
     final allowEmptyFocusLoad = query.isEmpty && asyncConfig.loadOnFocus;
     if (!meetsMinimum && !allowEmptyFocusLoad) {
@@ -509,6 +557,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         _asyncOptions = const [];
         _isLoading = false;
         _isDebouncing = false;
+        _resetAsyncPaginationState();
       });
       return;
     }
@@ -517,6 +566,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         !immediate && asyncConfig.debounceDuration > Duration.zero;
     setState(() {
       _isDebouncing = shouldDebounce;
+      _hasMoreAsyncResults = false;
       if (!shouldDebounce && !asyncConfig.retainPreviousOptionsWhileLoading) {
         _asyncOptions = const [];
       }
@@ -657,6 +707,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   void _syncOverlayVisibility({bool forceOpen = false}) {
     final shouldOpen = (forceOpen || _focusNode.hasFocus) &&
         (_isLoading ||
+            _isLoadingMore ||
             _visibleOptions.isNotEmpty ||
             _createOptionInput != null ||
             _shouldShowEmptyState);
@@ -989,5 +1040,80 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
     _openPopup();
     _syncOverlayVisibility(forceOpen: true);
+  }
+
+  void _handlePopupReachedEnd() {
+    if (!_config.isAsync ||
+        _paginationConfig == null ||
+        _isLoading ||
+        _isLoadingMore ||
+        _isDebouncing ||
+        !_hasMoreAsyncResults) {
+      return;
+    }
+    _loadNextAsyncPage();
+  }
+
+  Future<void> _loadNextAsyncPage() async {
+    final pagination = _paginationConfig;
+    if (pagination == null) {
+      return;
+    }
+
+    final query = _controller.text;
+    final nextPage = _currentAsyncPage + 1;
+    final requestId = ++_paginationRequestId;
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final nextItems = await pagination.optionsPageBuilder(
+        query,
+        nextPage,
+        pagination.pageSize,
+      );
+      if (!mounted ||
+          requestId != _paginationRequestId ||
+          query != _controller.text) {
+        return;
+      }
+      setState(() {
+        _asyncOptions = <T>[..._asyncOptions, ...nextItems];
+        _currentAsyncPage = nextPage;
+        _hasMoreAsyncResults = _resolveHasMore(
+          page: nextItems,
+          pagination: pagination,
+        );
+        _isLoadingMore = false;
+      });
+      _syncOverlayVisibility();
+    } catch (_) {
+      if (!mounted || requestId != _paginationRequestId) {
+        return;
+      }
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+
+  bool _resolveHasMore({
+    required List<T> page,
+    required AutocompleteAsyncPaginationConfig<T> pagination,
+  }) {
+    if (pagination.hasMore != null) {
+      return pagination.hasMore!(page);
+    }
+    print('Page length${page.length}');
+    print('Page size${pagination.pageSize}');
+    return page.length >= pagination.pageSize;
+  }
+
+  void _resetAsyncPaginationState() {
+    _currentAsyncPage = _paginationConfig?.initialPage ?? 0;
+    _hasMoreAsyncResults = false;
+    _isLoadingMore = false;
+    _paginationRequestId += 1;
   }
 }

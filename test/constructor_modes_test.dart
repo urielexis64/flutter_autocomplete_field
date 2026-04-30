@@ -359,6 +359,63 @@ void main() {
     expect(find.text('Banana'), findsNothing);
   });
 
+  testWidgets('async pagination appends options when scrolling near list end',
+      (tester) async {
+    var nonPagedCalls = 0;
+    final requestedPages = <int>[];
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.async(
+          asyncConfig: AutocompleteAsyncConfig(
+            optionsBuilder: (query) async {
+              nonPagedCalls += 1;
+              return const [];
+            },
+            debounceDuration: Duration.zero,
+            loadOnFocus: true,
+            paginationConfig: AutocompleteAsyncPaginationConfig<String>(
+              pageSize: 4,
+              optionsPageBuilder: (query, page, pageSize) async {
+                requestedPages.add(page);
+                await Future<void>.delayed(const Duration(milliseconds: 20));
+                if (page == 1) {
+                  return const ['Item 1', 'Item 2', 'Item 3', 'Item 4'];
+                }
+                if (page == 2) {
+                  return const ['Item 5', 'Item 6'];
+                }
+                return const <String>[];
+              },
+            ),
+          ),
+          getOptionLabel: (option) => option,
+          popupConfig: const AutocompletePopupConfig(maxHeight: 96),
+          decoration: const InputDecoration(labelText: 'Items'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+
+    expect(nonPagedCalls, 0);
+    expect(requestedPages, [1]);
+    expect(findPopupText('Item 1'), findsOneWidget);
+    expect(findPopupText('Item 5'), findsNothing);
+
+    final popupScrollView = find.descendant(
+      of: findPopupSurface(),
+      matching: find.byType(CustomScrollView),
+    );
+    await tester.drag(popupScrollView, const Offset(0, -500));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 30));
+    await tester.pumpAndSettle();
+
+    expect(requestedPages, [1, 2]);
+  });
+
   testWidgets('async popup shows loader while waiting without empty flash', (
     tester,
   ) async {

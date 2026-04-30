@@ -93,6 +93,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
           final inputWidth = _measureInputWidth(
             context,
             controller.text,
+            decoration.hintText,
             constraints.maxWidth,
           );
 
@@ -283,11 +284,12 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
   double _measureInputWidth(
     BuildContext context,
     String text,
+    String? hintText,
     double maxWidth,
   ) {
     final painter = TextPainter(
       text: TextSpan(
-        text: text.isEmpty ? ' ' : text,
+        text: text.isEmpty ? hintText ?? ' ' : text,
         style: Theme.of(context).textTheme.bodyLarge,
       ),
       textDirection: Directionality.of(context),

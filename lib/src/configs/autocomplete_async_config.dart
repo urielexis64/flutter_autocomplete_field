@@ -1,3 +1,5 @@
+import 'autocomplete_async_pagination_config.dart';
+
 /// Configures asynchronous option loading for async autocomplete constructors.
 ///
 /// Use this configuration when options come from a backend, local database, or
@@ -21,6 +23,7 @@ class AutocompleteAsyncConfig<T> {
     this.minQueryLength = 0,
     this.loadOnFocus = false,
     this.retainPreviousOptionsWhileLoading = true,
+    this.paginationConfig,
   }) : assert(minQueryLength >= 0);
 
   /// Asynchronously loads options for a query string.
@@ -51,4 +54,9 @@ class AutocompleteAsyncConfig<T> {
   /// When `false`, options are cleared while loading to avoid showing stale
   /// results from an older query.
   final bool retainPreviousOptionsWhileLoading;
+
+  /// Optional pagination behavior for incremental async loading.
+  ///
+  /// When null, async options are loaded as a single complete list.
+  final AutocompleteAsyncPaginationConfig<T>? paginationConfig;
 }

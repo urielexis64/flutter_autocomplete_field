@@ -9,6 +9,7 @@
 library;
 
 export 'src/configs/autocomplete_async_config.dart';
+export 'src/configs/autocomplete_async_pagination_config.dart';
 export 'src/configs/autocomplete_behavior_config.dart';
 export 'src/configs/autocomplete_chip_config.dart';
 export 'src/configs/autocomplete_clear_button_config.dart';
