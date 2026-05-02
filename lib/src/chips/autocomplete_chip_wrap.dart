@@ -241,7 +241,8 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
             value: value,
             label: getOptionLabel(value),
             isFixed: isFixed(value),
-            onDeleted: isFixed(value) ? null : () => onDelete(value),
+            onDeleted:
+                isFixed(value) || readOnly ? null : () => onDelete(value),
           ),
         )
         .toList(growable: false);

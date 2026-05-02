@@ -373,8 +373,11 @@ class AutocompleteField<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     if (_configuration.isMultiple) {
       return FormField<List<T>>(
-        key:
-            ValueKey<Object>(Object.hashAll(_configuration.values ?? const [])),
+        key: _configuration.isAsync
+            ? null
+            : ValueKey<Object>(
+                Object.hashAll(_configuration.values ?? const []),
+              ),
         enabled: _configuration.enabled,
         initialValue: List<T>.from(_configuration.values ?? const []),
         validator: _configuration.multipleValidator,
@@ -398,7 +401,9 @@ class AutocompleteField<T> extends StatelessWidget {
     }
 
     return FormField<T>(
-      key: ValueKey<Object?>(_configuration.value),
+      key: _configuration.isAsync
+          ? null
+          : ValueKey<Object?>(_configuration.value),
       enabled: _configuration.enabled,
       initialValue: _configuration.value,
       validator: _configuration.singleValidator,

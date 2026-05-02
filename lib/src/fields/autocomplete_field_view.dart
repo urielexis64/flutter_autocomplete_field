@@ -123,6 +123,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _configureTextEditingController();
     _configureFocusNode();
     _syncSelectionFromConfiguration(resetText: true);
+    _resetAsyncPaginationState();
     _configureAsyncController();
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureFieldWidth());
   }
@@ -410,8 +411,6 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     if (!_config.isAsync) {
       return;
     }
-    _resetAsyncPaginationState();
-    _hasLoadedAsyncOptions = false;
     final pagination = _paginationConfig;
     _asyncController = AsyncOptionsController<T>(
       config: _config.asyncConfig!,
@@ -498,9 +497,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
 
     if (_focusNode.hasFocus) {
-      if (_config.isAsync &&
-          _config.asyncConfig!.loadOnFocus &&
-          _controller.text.isEmpty) {
+      if (_shouldLoadAsyncOnFocus) {
         _requestAsyncOptions(immediate: true);
       }
       if (_config.behaviorConfig.openOnFocus) {
@@ -997,6 +994,10 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return null;
     }
 
+    if (_config.clearButtonConfig.widgetBuilder != null) {
+      return _config.clearButtonConfig.widgetBuilder!(_clearField);
+    }
+
     return IconButton(
       key: const ValueKey<String>('autocomplete-clear-button'),
       tooltip: _config.clearButtonConfig.tooltip,
@@ -1011,10 +1012,19 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return null;
     }
 
+    final onPressed = _config.readOnly ? null : _handleDropdownButtonPressed;
+
+    if (_config.dropdownButtonConfig.iconBuilder != null) {
+      return _config.dropdownButtonConfig.iconBuilder!(
+        onPressed,
+        _isOpen,
+      );
+    }
+
     return IconButton(
       key: const ValueKey<String>('autocomplete-dropdown-button'),
       tooltip: _config.dropdownButtonConfig.tooltip,
-      onPressed: _handleDropdownButtonPressed,
+      onPressed: onPressed,
       icon: _isOpen
           ? _config.dropdownButtonConfig.openIcon
           : _config.dropdownButtonConfig.closedIcon,
@@ -1055,15 +1065,23 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       _focusNode.requestFocus();
     }
 
-    if (_config.isAsync &&
-        _config.asyncConfig!.loadOnFocus &&
-        _controller.text.isEmpty &&
-        _asyncOptions.isEmpty) {
+    if (_shouldLoadAsyncOnFocus) {
       _requestAsyncOptions(immediate: true);
     }
 
     _openPopup();
     _syncOverlayVisibility(forceOpen: true);
+  }
+
+  bool get _shouldLoadAsyncOnFocus {
+    if (!_config.isAsync) {
+      return false;
+    }
+    final asyncConfig = _config.asyncConfig!;
+    if (!asyncConfig.loadOnFocus || _controller.text.isNotEmpty) {
+      return false;
+    }
+    return !_hasLoadedAsyncOptions || _asyncOptions.isEmpty;
   }
 
   void _handlePopupReachedEnd() {

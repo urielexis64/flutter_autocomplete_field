@@ -48,6 +48,9 @@ class AutocompleteAsyncConfig<T> {
   /// Whether to trigger an initial load when the field gains focus.
   ///
   /// This is useful for "show suggestions on focus" experiences.
+  ///
+  /// The request is performed when the query is empty and no async options are
+  /// currently cached by the field instance.
   final bool loadOnFocus;
 
   /// Whether typing a new query should trigger a new async request.

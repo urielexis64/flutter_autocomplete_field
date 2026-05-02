@@ -8,6 +8,7 @@ class AutocompleteDropdownButtonConfig {
     this.tooltip = 'Show options',
     this.closedIcon = const Icon(Icons.arrow_drop_down),
     this.openIcon = const Icon(Icons.arrow_drop_up),
+    this.iconBuilder,
   });
 
   /// Whether the dropdown indicator can be shown.
@@ -21,4 +22,6 @@ class AutocompleteDropdownButtonConfig {
 
   /// Icon displayed when the popup is currently open.
   final Widget openIcon;
+
+  final Widget Function(VoidCallback? onPressed, bool isOpen)? iconBuilder;
 }

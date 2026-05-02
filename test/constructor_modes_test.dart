@@ -359,6 +359,80 @@ void main() {
     expect(find.text('Banana'), findsNothing);
   });
 
+  testWidgets('loadOnFocus loads once and does not reload on refocus', (
+    tester,
+  ) async {
+    final queries = <String>[];
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.async(
+          asyncConfig: AutocompleteAsyncConfig(
+            optionsBuilder: (query) async {
+              queries.add(query);
+              return const ['Apple', 'Banana'];
+            },
+            debounceDuration: Duration.zero,
+            loadOnFocus: true,
+          ),
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'City'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    expect(queries, ['']);
+
+    await tester.tapAt(const Offset(380, 60));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+
+    expect(queries, ['']);
+  });
+
+  testWidgets(
+    'async multiple does not reload on refocus after selecting an item',
+    (tester) async {
+      final queries = <String>[];
+      var selected = <String>[];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.asyncMultiple(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return const ['Apple', 'Banana', 'Cherry'];
+              },
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+            ),
+            onChanged: (values) => selected = values,
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Fruits'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+
+      await selectPopupOption(tester, 'Apple');
+      expect(selected, ['Apple']);
+
+      await tester.tapAt(const Offset(380, 60));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+    },
+  );
+
   testWidgets(
     'async can load once and then filter locally without reloading',
     (tester) async {

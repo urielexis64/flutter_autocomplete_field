@@ -7,6 +7,7 @@ class AutocompleteClearButtonConfig {
     this.enabled = true,
     this.tooltip = 'Clear',
     this.icon = const Icon(Icons.close),
+    this.widgetBuilder,
   });
 
   /// Whether the clear button can be shown when the field has clearable state.
@@ -17,4 +18,6 @@ class AutocompleteClearButtonConfig {
 
   /// Icon widget rendered by the clear button.
   final Widget icon;
+
+  final Widget Function(VoidCallback onClear)? widgetBuilder;
 }
