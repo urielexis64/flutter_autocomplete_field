@@ -143,7 +143,8 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       _configureAsyncController();
     }
     if (_didExternalSelectionChange(oldWidget.configuration)) {
-      _syncSelectionFromConfiguration();
+      final shouldResetText = _config.isMultiple || _config.value == null;
+      _syncSelectionFromConfiguration(resetText: shouldResetText);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureFieldWidth());
   }

@@ -715,6 +715,100 @@ void main() {
     formKey.currentState!.save();
     expect(savedValue, 'Banana');
   });
+
+  testWidgets('single form reset clears selected value and input text', (
+    tester,
+  ) async {
+    final formKey = GlobalKey<FormState>();
+
+    await tester.pumpWidget(
+      buildTestApp(
+        Form(
+          key: formKey,
+          child: AutocompleteField<String>.single(
+            options: const ['Apple', 'Banana'],
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Fruit'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    await selectPopupOption(tester, 'Banana');
+    expect(find.text('Banana'), findsOneWidget);
+
+    formKey.currentState!.reset();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Banana'), findsNothing);
+  });
+
+  testWidgets('single onSaved receives selected value in async mode', (
+    tester,
+  ) async {
+    final formKey = GlobalKey<FormState>();
+    String? savedValue;
+
+    await tester.pumpWidget(
+      buildTestApp(
+        Form(
+          key: formKey,
+          child: AutocompleteField<String>.async(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async => const ['Apple', 'Banana'],
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+            ),
+            getOptionLabel: (option) => option,
+            onSaved: (value) => savedValue = value,
+            decoration: const InputDecoration(labelText: 'Fruit'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    await selectPopupOption(tester, 'Banana');
+
+    formKey.currentState!.save();
+    expect(savedValue, 'Banana');
+  });
+
+  testWidgets('async single form reset clears selected value and input text', (
+    tester,
+  ) async {
+    final formKey = GlobalKey<FormState>();
+
+    await tester.pumpWidget(
+      buildTestApp(
+        Form(
+          key: formKey,
+          child: AutocompleteField<String>.async(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async => const ['Apple', 'Banana'],
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+            ),
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Fruit'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    await selectPopupOption(tester, 'Banana');
+    expect(find.text('Banana'), findsOneWidget);
+
+    formKey.currentState!.reset();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Banana'), findsNothing);
+  });
 }
 
 Text _popupOptionLabelText(WidgetTester tester, String label) {
