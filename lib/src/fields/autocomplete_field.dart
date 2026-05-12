@@ -71,7 +71,7 @@ class AutocompleteField<T> extends StatelessWidget {
     required List<T> options,
     T? value,
     ValueChanged<T?>? onChanged,
-    required AutocompleteOptionLabel<T> getOptionLabel,
+    AutocompleteOptionLabel<T>? getOptionLabel,
     AutocompleteCreatableConfig<T>? creatableConfig,
     AutocompleteGroupingConfig<T>? groupingConfig,
     AutocompleteBehaviorConfig behaviorConfig =
@@ -147,7 +147,7 @@ class AutocompleteField<T> extends StatelessWidget {
     required List<T> options,
     List<T> values = const [],
     ValueChanged<List<T>>? onChanged,
-    required AutocompleteOptionLabel<T> getOptionLabel,
+    AutocompleteOptionLabel<T>? getOptionLabel,
     AutocompleteCreatableConfig<T>? creatableConfig,
     AutocompleteGroupingConfig<T>? groupingConfig,
     AutocompleteBehaviorConfig behaviorConfig =
@@ -234,7 +234,7 @@ class AutocompleteField<T> extends StatelessWidget {
     required AutocompleteAsyncConfig<T> asyncConfig,
     T? value,
     ValueChanged<T?>? onChanged,
-    required AutocompleteOptionLabel<T> getOptionLabel,
+    AutocompleteOptionLabel<T>? getOptionLabel,
     AutocompleteCreatableConfig<T>? creatableConfig,
     AutocompleteGroupingConfig<T>? groupingConfig,
     AutocompleteBehaviorConfig behaviorConfig =
@@ -307,7 +307,7 @@ class AutocompleteField<T> extends StatelessWidget {
     required AutocompleteAsyncConfig<T> asyncConfig,
     List<T> values = const [],
     ValueChanged<List<T>>? onChanged,
-    required AutocompleteOptionLabel<T> getOptionLabel,
+    AutocompleteOptionLabel<T>? getOptionLabel,
     AutocompleteCreatableConfig<T>? creatableConfig,
     AutocompleteGroupingConfig<T>? groupingConfig,
     AutocompleteBehaviorConfig behaviorConfig =

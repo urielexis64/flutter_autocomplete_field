@@ -23,6 +23,8 @@ class AutocompleteFieldConfiguration<T> {
   /// Internal sentinel used by [copyWith] to distinguish omitted from `null`.
   static const Object _unset = Object();
 
+  static String _defaultGetOptionLabel(value) => value.toString();
+
   /// Creates a normalized configuration snapshot.
   ///
   /// Use one of the mode-specific factories instead of this constructor.
@@ -63,7 +65,6 @@ class AutocompleteFieldConfiguration<T> {
   /// Creates configuration for synchronous single selection.
   factory AutocompleteFieldConfiguration.single({
     required List<T> options,
-    required AutocompleteOptionLabel<T> getOptionLabel,
     required AutocompleteBehaviorConfig behaviorConfig,
     required AutocompletePopupConfig popupConfig,
     required InputDecoration decoration,
@@ -74,6 +75,7 @@ class AutocompleteFieldConfiguration<T> {
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
+    AutocompleteOptionLabel<T>? getOptionLabel,
     AutocompleteCreatableConfig<T>? creatableConfig,
     T? value,
     ValueChanged<T?>? onChanged,
@@ -93,7 +95,7 @@ class AutocompleteFieldConfiguration<T> {
       creatableConfig: creatableConfig,
       value: value,
       onChanged: onChanged,
-      getOptionLabel: getOptionLabel,
+      getOptionLabel: getOptionLabel ?? _defaultGetOptionLabel,
       groupingConfig: groupingConfig,
       behaviorConfig: behaviorConfig,
       filterConfig: filterConfig,
@@ -121,7 +123,6 @@ class AutocompleteFieldConfiguration<T> {
     required List<T> options,
     required List<T> values,
     required ValueChanged<List<T>>? onValuesChanged,
-    required AutocompleteOptionLabel<T> getOptionLabel,
     required AutocompleteBehaviorConfig behaviorConfig,
     required AutocompletePopupConfig popupConfig,
     required AutocompleteChipConfig<T> chipConfig,
@@ -133,6 +134,7 @@ class AutocompleteFieldConfiguration<T> {
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
+    AutocompleteOptionLabel<T>? getOptionLabel,
     AutocompleteCreatableConfig<T>? creatableConfig,
     AutocompleteGroupingConfig<T>? groupingConfig,
     AutocompleteFilterConfig<T>? filterConfig,
@@ -150,7 +152,7 @@ class AutocompleteFieldConfiguration<T> {
       creatableConfig: creatableConfig,
       values: values,
       onValuesChanged: onValuesChanged,
-      getOptionLabel: getOptionLabel,
+      getOptionLabel: getOptionLabel ?? _defaultGetOptionLabel,
       groupingConfig: groupingConfig,
       behaviorConfig: behaviorConfig,
       filterConfig: filterConfig,
@@ -177,7 +179,6 @@ class AutocompleteFieldConfiguration<T> {
   /// Creates configuration for asynchronous single selection.
   factory AutocompleteFieldConfiguration.asyncSingle({
     required AutocompleteAsyncConfig<T> asyncConfig,
-    required AutocompleteOptionLabel<T> getOptionLabel,
     required AutocompleteBehaviorConfig behaviorConfig,
     required AutocompletePopupConfig popupConfig,
     required InputDecoration decoration,
@@ -188,6 +189,7 @@ class AutocompleteFieldConfiguration<T> {
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
+    AutocompleteOptionLabel<T>? getOptionLabel,
     AutocompleteCreatableConfig<T>? creatableConfig,
     T? value,
     ValueChanged<T?>? onChanged,
@@ -207,7 +209,7 @@ class AutocompleteFieldConfiguration<T> {
       creatableConfig: creatableConfig,
       value: value,
       onChanged: onChanged,
-      getOptionLabel: getOptionLabel,
+      getOptionLabel: getOptionLabel ?? _defaultGetOptionLabel,
       groupingConfig: groupingConfig,
       behaviorConfig: behaviorConfig,
       filterConfig: filterConfig,
@@ -235,7 +237,6 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteAsyncConfig<T> asyncConfig,
     required List<T> values,
     required ValueChanged<List<T>>? onValuesChanged,
-    required AutocompleteOptionLabel<T> getOptionLabel,
     required AutocompleteBehaviorConfig behaviorConfig,
     required AutocompletePopupConfig popupConfig,
     required AutocompleteChipConfig<T> chipConfig,
@@ -247,6 +248,7 @@ class AutocompleteFieldConfiguration<T> {
     required bool enabled,
     required bool readOnly,
     required bool autofocus,
+    AutocompleteOptionLabel<T>? getOptionLabel,
     AutocompleteCreatableConfig<T>? creatableConfig,
     AutocompleteGroupingConfig<T>? groupingConfig,
     AutocompleteFilterConfig<T>? filterConfig,
@@ -264,7 +266,7 @@ class AutocompleteFieldConfiguration<T> {
       creatableConfig: creatableConfig,
       values: values,
       onValuesChanged: onValuesChanged,
-      getOptionLabel: getOptionLabel,
+      getOptionLabel: getOptionLabel ?? _defaultGetOptionLabel,
       groupingConfig: groupingConfig,
       behaviorConfig: behaviorConfig,
       filterConfig: filterConfig,
