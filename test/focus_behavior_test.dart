@@ -287,4 +287,46 @@ void main() {
       expect(popupBottom, lessThanOrEqualTo(viewportHeight));
     },
   );
+
+  testWidgets('popup above placement stays visually attached to the field', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 360);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: AutocompleteField<String>.single(
+                  options: const ['Apple', 'Banana'],
+                  getOptionLabel: (option) => option,
+                  popupConfig: const AutocompletePopupConfig(
+                    maxHeight: 220,
+                    offset: Offset(0, 8),
+                  ),
+                  decoration: const InputDecoration(labelText: 'Fruit'),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+
+    final popupBottom = tester.getBottomLeft(findPopupSurface()).dy;
+    final fieldTop = tester.getTopLeft(find.byType(TextField)).dy;
+    final gap = (fieldTop - popupBottom).abs();
+
+    expect(gap, lessThanOrEqualTo(10));
+  });
 }

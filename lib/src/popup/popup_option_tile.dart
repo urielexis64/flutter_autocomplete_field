@@ -58,7 +58,9 @@ class PopupOptionTile<T> extends StatelessWidget {
     final theme = Theme.of(context);
     final background = state.isHighlighted
         ? theme.colorScheme.surfaceContainerHighest
-        : Colors.transparent;
+        : state.isSelected
+            ? theme.colorScheme.secondaryContainer
+            : Colors.transparent;
 
     return Material(
       color: background,

@@ -15,16 +15,23 @@ class _PopupPlacement {
   /// Creates immutable placement values for the popup surface.
   const _PopupPlacement({
     required this.left,
-    required this.top,
+    this.top,
+    this.bottom,
     required this.width,
     required this.maxHeight,
-  });
+  }) : assert(
+          (top == null) != (bottom == null),
+          'Provide exactly one vertical anchor: top or bottom.',
+        );
 
   /// Left coordinate of the popup surface.
   final double left;
 
-  /// Top coordinate of the popup surface.
-  final double top;
+  /// Top coordinate of the popup surface when placed below the field.
+  final double? top;
+
+  /// Bottom coordinate of the popup surface when placed above the field.
+  final double? bottom;
 
   /// Popup width.
   final double width;
@@ -116,6 +123,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Measured field width used as popup-width fallback.
   double? _fieldWidth;
+
+  /// Whether selected text should be ignored as an active filter query.
+  bool _suppressSelectedLabelQuery = false;
 
   @override
   void initState() {
@@ -228,6 +238,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
             Positioned(
               left: placement.left,
               top: placement.top,
+              bottom: placement.bottom,
               width: placement.width,
               child: TapRegion(
                 groupId: _tapRegionGroupId,
@@ -235,7 +246,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
                   constraints: BoxConstraints(maxWidth: placement.width),
                   child: AutocompletePopup<T>(
                     options: _visibleOptions,
-                    query: _controller.text,
+                    query: _activeQuery,
                     getOptionLabel: widget.configuration.getOptionLabel,
                     isSelected: _isOptionSelected,
                     onOptionTap: _selectOption,
@@ -318,7 +329,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Option list visible in the popup after query and config filtering.
   List<T> get _visibleOptions {
-    final query = _controller.text;
+    final query = _activeQuery;
     if (!_shouldShowOptionsForQuery(query)) {
       return const [];
     }
@@ -472,15 +483,19 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// state according to mode-specific behavior.
   void _syncSelectionFromConfiguration({bool resetText = false}) {
     if (_config.isMultiple) {
-      _selectedValues = List<T>.from(_config.values ?? const []);
+      _selectedValues = _resolveConfiguredValues(_config.values ?? const []);
+      _suppressSelectedLabelQuery = false;
       if (resetText && _config.behaviorConfig.clearInputOnSelect) {
         _controller.clear();
       }
       return;
     }
 
-    _selectedValue = _config.value;
+    _selectedValue = _config.value == null
+        ? null
+        : _resolveConfiguredSingleValue(_config.value as T);
     if (_selectedValue == null) {
+      _suppressSelectedLabelQuery = false;
       if (resetText) {
         _controller.clear();
       }
@@ -498,6 +513,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
 
     if (_focusNode.hasFocus) {
+      _armSelectedLabelQuerySuppression();
       if (_shouldLoadAsyncOnFocus) {
         _requestAsyncOptions(immediate: true);
       }
@@ -505,6 +521,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         _syncOverlayVisibility(forceOpen: true);
       }
     } else {
+      _suppressSelectedLabelQuery = false;
       if (_config.behaviorConfig.clearOnBlur) {
         _clearQueryOnBlur();
       }
@@ -515,6 +532,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Handles query text changes from the input widget.
   void _handleInputChanged(String value) {
+    _suppressSelectedLabelQuery = false;
     if (_config.isAsync) {
       _requestAsyncOptions();
     }
@@ -538,6 +556,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     } else {
       setState(() {
         _selectedValue = null;
+        _suppressSelectedLabelQuery = false;
         _controller.clear();
       });
       _config.onChanged?.call(null);
@@ -622,9 +641,11 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       setState(() {
         _selectedValue = option;
         if (_config.behaviorConfig.clearInputOnSelect) {
+          _suppressSelectedLabelQuery = false;
           _controller.clear();
         } else {
           _controller.text = _config.getOptionLabel(option);
+          _armSelectedLabelQuerySuppression();
         }
       });
       _config.onChanged?.call(option);
@@ -695,6 +716,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     } else {
       setState(() {
         _selectedValue = null;
+        _suppressSelectedLabelQuery = false;
         _controller.clear();
       });
       _config.onChanged?.call(null);
@@ -748,7 +770,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     if (_isDebouncing) {
       return false;
     }
-    final query = _controller.text;
+    final query = _activeQuery;
     if (!_shouldShowOptionsForQuery(query)) {
       return false;
     }
@@ -761,7 +783,14 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     final asyncConfig = _config.asyncConfig!;
     final meetsMinimum = query.length >= asyncConfig.minQueryLength;
     final allowEmptyFocusLoad = query.isEmpty && asyncConfig.loadOnFocus;
-    return meetsMinimum || allowEmptyFocusLoad;
+    if (meetsMinimum || allowEmptyFocusLoad) {
+      return true;
+    }
+
+    // Allow a guidance empty state (for example, "Type to search") before
+    // async query requirements are met, but only when the user provided a
+    // custom empty builder.
+    return _config.renderingConfig?.emptyBuilder != null;
   }
 
   /// Opens popup overlay if closed.
@@ -829,6 +858,68 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// Compares two options with custom equality when provided.
   bool _isEqual(T option, T value) {
     return _config.isOptionEqualToValue?.call(option, value) ?? option == value;
+  }
+
+  /// Resolves a configured single value against the current options list.
+  ///
+  /// This allows initial external values to reuse an in-list option instance
+  /// (for selection visuals) even when models do not override `==`.
+  T _resolveConfiguredSingleValue(T value) {
+    final options = _allOptions;
+    if (options.isEmpty) {
+      return value;
+    }
+
+    for (final option in options) {
+      if (_isEqual(option, value)) {
+        return option;
+      }
+    }
+
+    if (_config.isOptionEqualToValue != null) {
+      return value;
+    }
+
+    final selectedLabel = _config.getOptionLabel(value);
+    for (final option in options) {
+      if (_config.getOptionLabel(option) == selectedLabel) {
+        return option;
+      }
+    }
+    return value;
+  }
+
+  /// Resolves configured multiple values against the current options list.
+  List<T> _resolveConfiguredValues(List<T> values) {
+    if (values.isEmpty) {
+      return <T>[];
+    }
+
+    final remainingOptions = List<T>.from(_allOptions);
+    final resolved = <T>[];
+    for (final value in values) {
+      final equalityMatchIndex = remainingOptions.indexWhere(
+        (option) => _isEqual(option, value),
+      );
+      if (equalityMatchIndex >= 0) {
+        resolved.add(remainingOptions.removeAt(equalityMatchIndex));
+        continue;
+      }
+
+      if (_config.isOptionEqualToValue == null) {
+        final selectedLabel = _config.getOptionLabel(value);
+        final labelMatchIndex = remainingOptions.indexWhere(
+          (option) => _config.getOptionLabel(option) == selectedLabel,
+        );
+        if (labelMatchIndex >= 0) {
+          resolved.add(remainingOptions.removeAt(labelMatchIndex));
+          continue;
+        }
+      }
+
+      resolved.add(value);
+    }
+    return resolved;
   }
 
   /// Returns whether [value] is configured as a non-removable fixed chip.
@@ -900,11 +991,11 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
 
     final mediaQuery = MediaQuery.maybeOf(overlayContext);
+    final overlayHeight = overlayRenderObject.size.height;
     const viewportMargin = 4.0;
     final safeTop = (mediaQuery?.padding.top ?? 0) + viewportMargin;
-    final safeBottom = overlayRenderObject.size.height -
-        (mediaQuery?.viewInsets.bottom ?? 0) -
-        viewportMargin;
+    final safeBottom =
+        overlayHeight - (mediaQuery?.viewInsets.bottom ?? 0) - viewportMargin;
     if (safeBottom <= safeTop) {
       return null;
     }
@@ -936,9 +1027,14 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return null;
     }
 
-    final top =
-        prefersBelow ? belowStart : targetRect.top - verticalGap - maxHeight;
-    final clampedTop = top.clamp(safeTop, safeBottom - maxHeight).toDouble();
+    final top = prefersBelow
+        ? belowStart.clamp(safeTop, safeBottom - maxHeight).toDouble()
+        : null;
+    final bottom = prefersBelow
+        ? null
+        : (overlayHeight - aboveEnd)
+            .clamp(viewportMargin, overlayHeight - safeTop)
+            .toDouble();
 
     final requestedLeft = targetRect.left + _config.popupConfig.offset.dx;
     final maxLeft = overlayRenderObject.size.width - viewportMargin - width;
@@ -949,7 +1045,8 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
     return _PopupPlacement(
       left: clampedLeft,
-      top: clampedTop,
+      top: top,
+      bottom: bottom,
       width: width,
       maxHeight: maxHeight,
     );
@@ -1065,6 +1162,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     if (!_focusNode.hasFocus) {
       _focusNode.requestFocus();
     }
+    _armSelectedLabelQuerySuppression();
 
     if (_shouldLoadAsyncOnFocus) {
       _requestAsyncOptions(immediate: true);
@@ -1156,5 +1254,26 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _hasMoreAsyncResults = false;
     _isLoadingMore = false;
     _paginationRequestId += 1;
+  }
+
+  /// Query used for popup filtering and highlighting.
+  String get _activeQuery {
+    if (!_suppressSelectedLabelQuery ||
+        _config.isMultiple ||
+        _selectedValue == null) {
+      return _controller.text;
+    }
+    final selectedLabel = _config.getOptionLabel(_selectedValue as T);
+    return _controller.text == selectedLabel ? '' : _controller.text;
+  }
+
+  /// Marks selected-label text as non-filter query when reopening single mode.
+  void _armSelectedLabelQuerySuppression() {
+    if (_config.isMultiple || _selectedValue == null) {
+      _suppressSelectedLabelQuery = false;
+      return;
+    }
+    final selectedLabel = _config.getOptionLabel(_selectedValue as T);
+    _suppressSelectedLabelQuery = _controller.text == selectedLabel;
   }
 }

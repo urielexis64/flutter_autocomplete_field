@@ -27,6 +27,112 @@ void main() {
     expect(find.text('Banana'), findsOneWidget);
   });
 
+  testWidgets(
+    'single mode reopens with all options after selecting a value',
+    (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.single(
+            options: const ['Apple', 'Banana'],
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Fruit'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      await selectPopupOption(tester, 'Banana');
+
+      await tester.tap(find.byKey(const Key('outside-area')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(findPopupText('Apple'), findsOneWidget);
+      expect(findPopupText('Banana'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'single mode keeps selected indicator on reopen',
+    (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.single(
+            options: const ['Apple', 'Banana'],
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Fruit'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      await selectPopupOption(tester, 'Banana');
+
+      await tester.tap(find.byKey(const Key('outside-area')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: findPopupOption('Banana'),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: findPopupOption('Apple'),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'single mode marks initial object value as selected by matching label',
+    (tester) async {
+      final options = const [
+        _City('1', 'Paris'),
+        _City('2', 'London'),
+      ];
+      final initialValue = const _City('99', 'London');
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<_City>.single(
+            options: options,
+            value: initialValue,
+            getOptionLabel: (option) => option.name,
+            decoration: const InputDecoration(labelText: 'City'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: findPopupOption('London'),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: findPopupOption('Paris'),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsNothing,
+      );
+    },
+  );
+
   testWidgets('dropdown indicator is visible by default', (tester) async {
     await tester.pumpWidget(
       buildTestApp(
@@ -635,6 +741,41 @@ void main() {
     expect(selected, ['Apple', 'Banana']);
   });
 
+  testWidgets(
+    'async multiple shows custom empty builder before min query length',
+    (tester) async {
+      final queries = <String>[];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.asyncMultiple(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return const ['Apple', 'Banana'];
+              },
+              debounceDuration: Duration.zero,
+              minQueryLength: 2,
+              loadOnFocus: false,
+            ),
+            getOptionLabel: (option) => option,
+            renderingConfig: const AutocompleteRenderingConfig<String>(
+              emptyBuilder: _typeToSearchEmptyBuilder,
+            ),
+            decoration: const InputDecoration(labelText: 'Fruits'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(findPopupSurface(), findsOneWidget);
+      expect(findPopupText('Type to find something'), findsOneWidget);
+      expect(queries, isEmpty);
+    },
+  );
+
   testWidgets('single validator shows an error through the input decoration', (
     tester,
   ) async {
@@ -809,6 +950,17 @@ void main() {
 
     expect(find.text('Banana'), findsNothing);
   });
+}
+
+class _City {
+  const _City(this.id, this.name);
+
+  final String id;
+  final String name;
+}
+
+Widget _typeToSearchEmptyBuilder(BuildContext context, String query) {
+  return const Center(child: Text('Type to find something'));
 }
 
 Text _popupOptionLabelText(WidgetTester tester, String label) {
