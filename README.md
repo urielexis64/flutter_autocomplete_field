@@ -42,32 +42,17 @@ For pub.dev, the most reliable pattern is:
 
 ### Ready-to-fill demo blocks
 
-#### 1) Single select (primitives)
-![Single select demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/1%20Single%20select%20primitives.gif)
+| 1) Single select (primitives) | 2) Single select (objects) | 3) Multiple chips |
+| --- | --- | --- |
+| ![Single select demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/1%20Single%20select%20primitives.gif) | ![Single select objects demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/2%20Single%20select%20objects.gif) | ![Multiple chips demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/3%20Multiple%20chips.gif) |
 
-#### 2) Single select (objects)
-![Multiple chips demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/2%20Single%20select%20objects.gif)
+| 4) Creatable | 5) Grouped options | 6) Async search-as-type |
+| --- | --- | --- |
+| ![Creatable demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/4%20Creatable.gif) | ![Grouped options demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/5%20Grouping.gif) | ![Async search demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/6%20Async%20search.gif) |
 
-#### 3) Multiple chips
-![Creatable tags demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/3%20Multiple%20chips.gif)
-
-#### 4) Creatable
-![Creatable demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/4%20Creatable.gif)
-
-#### 5) Grouped options
-![Grouped options demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/5%20Grouping.gif)
-
-#### 6) Async combobox (load once)
-![Async combobox demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/6%20Async%20search.gif)
-
-#### 7) Async multiple (load once)
-![Async multiple demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/7%20Async%20combobox.gif)
-
-#### 8) Async pagination
-![Async pagination demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/8%20Async%20Pagination.gif)
-
-#### 9) Form validation
-![Form validation demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/9%20Form%20Integration.gif)
+| 7) Async combobox (load once) | 8) Async pagination | 9) Form validation |
+| --- | --- | --- |
+| ![Async combobox demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/7%20Async%20combobox.gif) | ![Async pagination demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/8%20Async%20Pagination.gif) | ![Form validation demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/9%20Form%20Integration.gif) |
 
 ## Constructor cheat sheet
 
