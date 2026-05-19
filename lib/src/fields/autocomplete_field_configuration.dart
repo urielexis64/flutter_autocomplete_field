@@ -23,7 +23,7 @@ class AutocompleteFieldConfiguration<T> {
   /// Internal sentinel used by [copyWith] to distinguish omitted from `null`.
   static const Object _unset = Object();
 
-  static String _defaultGetOptionLabel(value) => value.toString();
+  static String _defaultGetOptionLabel(dynamic value) => value.toString();
 
   /// Creates a normalized configuration snapshot.
   ///
