@@ -13,7 +13,7 @@ The package is built for touch/virtual-keyboard UX, chip-based multiple mode, as
 
 ```yaml
 dependencies:
-  flutter_autocomplete: ^0.0.1
+  flutter_autocomplete: ^0.0.2
 ```
 
 ```dart
@@ -35,24 +35,17 @@ AutocompleteField<String>.single(
 
 ## Demo
 
-Use this section to showcase real UI behavior per use case.  
-For pub.dev, the most reliable pattern is:
-
-- A GIF/image preview (`![...](...)`)
-
-### Ready-to-fill demo blocks
-
 | 1) Single select (primitives) | 2) Single select (objects) | 3) Multiple chips |
 | --- | --- | --- |
-| ![Single select demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/1%20Single%20select%20primitives.gif) | ![Single select objects demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/2%20Single%20select%20objects.gif) | ![Multiple chips demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/3%20Multiple%20chips.gif) |
+| ![Single select demo](https://raw.githubusercontent.com/urielexis64/flutter_autocomplete_field/main/example/demo/1-single-select-primitives.gif) | ![Single select objects demo](https://raw.githubusercontent.com/urielexis64/flutter_autocomplete_field/main/example/demo/2-single-select-objects.gif) | ![Multiple chips demo](https://raw.githubusercontent.com/urielexis64/flutter_autocomplete_field/main/example/demo/3-multiple-chips.gif) |
 
 | 4) Creatable | 5) Grouped options | 6) Async search-as-type |
 | --- | --- | --- |
-| ![Creatable demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/4%20Creatable.gif) | ![Grouped options demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/5%20Grouping.gif) | ![Async search demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/6%20Async%20search.gif) |
+| ![Creatable demo](https://raw.githubusercontent.com/urielexis64/flutter_autocomplete_field/main/example/demo/4-creatable.gif) | ![Grouped options demo](https://raw.githubusercontent.com/urielexis64/flutter_autocomplete_field/main/example/demo/5-grouping.gif) | ![Async search demo](https://raw.githubusercontent.com/urielexis64/flutter_autocomplete_field/main/example/demo/6-async-search.gif) |
 
 | 7) Async combobox (load once) | 8) Async pagination | 9) Form validation |
 | --- | --- | --- |
-| ![Async combobox demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/7%20Async%20combobox.gif) | ![Async pagination demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/8%20Async%20Pagination.gif) | ![Form validation demo](https://github.com/urielexis64/flutter_autocomplete_field/blob/main/example/demo/9%20Form%20Integration.gif) |
+| ![Async combobox demo](https://raw.githubusercontent.com/urielexis64/flutter_autocomplete_field/main/example/demo/7-async-combobox.gif) | ![Async pagination demo](https://raw.githubusercontent.com/urielexis64/flutter_autocomplete_field/main/example/demo/8-async-pagination.gif) | ![Form validation demo](https://raw.githubusercontent.com/urielexis64/flutter_autocomplete_field/main/example/demo/9-form-integration.gif) |
 
 ## Constructor cheat sheet
 
@@ -306,4 +299,3 @@ It includes:
 - Uses Flutter text/chip/tap semantics.
 - Validation errors are rendered via `InputDecoration`.
 - Mobile-first behavior.
-- Physical keyboard shortcut/navigation behavior is intentionally out of scope.
