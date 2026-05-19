@@ -1,16 +1,13 @@
 # flutter_autocomplete
 
-`flutter_autocomplete` is a mobile-first autocomplete package for Flutter.
+Mobile-first autocomplete for Flutter with focused constructors:
 
-The package focuses on:
+- `AutocompleteField.single<T>()`
+- `AutocompleteField.multiple<T>()`
+- `AutocompleteField.async<T>()`
+- `AutocompleteField.asyncMultiple<T>()`
 
-- focused constructors instead of one giant widget API
-- chip-based multiple selection that works with the virtual keyboard
-- visual grouping that stays separate from selection logic
-- creatable flows that generate typed values instead of selecting raw text
-- no physical keyboard navigation
-- no desktop shortcut handling
-- no virtualized lists
+The package is built for touch/virtual-keyboard UX, chip-based multiple mode, async loading, creatable options, and visual grouping.
 
 ## Installation
 
@@ -23,7 +20,7 @@ dependencies:
 import 'package:flutter_autocomplete/flutter_autocomplete.dart';
 ```
 
-## Quick Start
+## Quick start
 
 ```dart
 AutocompleteField<String>.single(
@@ -36,108 +33,80 @@ AutocompleteField<String>.single(
 )
 ```
 
-## Validation
+## Constructor cheat sheet
 
-All constructors integrate with Flutter `Form` and expose the standard form
-hooks for their selection shape:
-
-- single-value modes use `String? Function(T? value)? validator`
-- multiple-value modes use `String? Function(List<T> values)? validator`
-- all modes support `onSaved` and `autovalidateMode`
-
-```dart
-final formKey = GlobalKey<FormState>();
-
-Form(
-  key: formKey,
-  child: AutocompleteField<String>.multiple(
-    options: const ['Apple', 'Banana', 'Cherry'],
-    getOptionLabel: (option) => option,
-    validator: (values) {
-      if (values == null || values.isEmpty) {
-        return 'Pick at least one fruit';
-      }
-      return null;
-    },
-    decoration: const InputDecoration(
-      labelText: 'Fruits',
-      border: OutlineInputBorder(),
-    ),
-  ),
-)
-```
-
-## Constructor Guide
-
-All modes are exposed through explicit constructors:
-
-- `AutocompleteField.single<T>()`
-- `AutocompleteField.multiple<T>()`
-- `AutocompleteField.async<T>()`
-- `AutocompleteField.asyncMultiple<T>()`
-
-## Mode Comparison
-
-| Constructor | Selection | Data Source | Creation |
+| Constructor | Selection | Data source | Typical use |
 | --- | --- | --- | --- |
-| `single` | one value | sync list | optional via `creatableConfig` |
-| `multiple` | many values | sync list | optional via `creatableConfig` |
-| `async` | one value | async loader | optional via `creatableConfig` |
-| `asyncMultiple` | many values | async loader | optional via `creatableConfig` |
+| `single` | One value | Local list | Plain dropdown-like autocomplete |
+| `multiple` | Many values | Local list | Chips/tag picker |
+| `async` | One value | API/DB | Search-as-type or combobox |
+| `asyncMultiple` | Many values | API/DB | Remote-backed chip picker |
 
-## Examples
+## Use case cookbook
 
-### Single Select
+### 1) Single select with primitive options
 
 ```dart
-AutocompleteField<Movie>.single(
-  options: movies,
-  value: selectedMovie,
-  onChanged: (movie) => setState(() => selectedMovie = movie),
-  getOptionLabel: (movie) => movie.title,
-  decoration: const InputDecoration(
-    labelText: 'Movie',
-    border: OutlineInputBorder(),
-  ),
+AutocompleteField<String>.single(
+  options: const ['Open', 'In Progress', 'Done'],
+  value: status,
+  onChanged: (value) => setState(() => status = value),
+  getOptionLabel: (option) => option,
 )
 ```
 
-### Multiple Select
+### 2) Single select with objects + custom equality
+
+Use `isOptionEqualToValue` when object identity may differ.
+
+```dart
+AutocompleteField<User>.single(
+  options: users,
+  value: selectedUser,
+  onChanged: (value) => setState(() => selectedUser = value),
+  getOptionLabel: (user) => user.fullName,
+  isOptionEqualToValue: (option, value) => option.id == value.id,
+)
+```
+
+### 3) Multiple chips with fixed values
 
 ```dart
 AutocompleteField<String>.multiple(
-  options: const ['Apple', 'Banana', 'Cherry', 'Dragonfruit'],
-  values: selectedFruits,
-  onChanged: (values) => setState(() => selectedFruits = values),
+  options: const ['Owner', 'Reviewer', 'Approver', 'Observer'],
+  values: selectedRoles,
+  onChanged: (values) => setState(() => selectedRoles = values),
   getOptionLabel: (option) => option,
-  decoration: const InputDecoration(
-    labelText: 'Fruits',
-    border: OutlineInputBorder(),
+  chipConfig: const AutocompleteChipConfig<String>(
+    fixedValues: ['Owner'],
+    limitTags: 3,
+    showHiddenCountChip: true,
+  ),
+  behaviorConfig: const AutocompleteBehaviorConfig(
+    closeOnSelect: false,
+    clearInputOnSelect: true,
   ),
 )
 ```
 
-### Async
+### 4) Creatable options
 
 ```dart
-AutocompleteField<String>.async(
-  asyncConfig: AutocompleteAsyncConfig(
-    optionsBuilder: repository.searchCities,
-    debounceDuration: const Duration(milliseconds: 250),
-    minQueryLength: 2,
-    loadOnlyOnce: false,
-  ),
+AutocompleteField<String>.multiple(
+  options: const ['bug', 'feature', 'blocked'],
+  values: tags,
+  onChanged: (values) => setState(() => tags = values),
   getOptionLabel: (option) => option,
-  decoration: const InputDecoration(
-    labelText: 'City',
-    border: OutlineInputBorder(),
+  creatableConfig: AutocompleteCreatableConfig<String>(
+    createOption: (input) => input.trim().toLowerCase(),
+    createLabel: (input) => 'Create tag "$input"',
   ),
 )
 ```
 
-## Grouping
+### 5) Grouping (visual only)
 
-Grouping changes popup rendering only. It does not change selection, equality, or stored values.
+Grouping changes popup rendering only.
 
 ```dart
 AutocompleteField<City>.single(
@@ -151,25 +120,106 @@ AutocompleteField<City>.single(
 )
 ```
 
-Creatable rows are rendered outside groups, so the synthetic create action stays distinct from grouped options.
-
-## Custom Filtering
+### 6) Async search-as-type
 
 ```dart
-AutocompleteField<Movie>.single(
-  options: movies,
-  getOptionLabel: (movie) => movie.title,
-  filterConfig: AutocompleteFilterConfig<Movie>(
-    matchFrom: AutocompleteMatchFrom.start,
-    limit: 20,
-    stringify: (movie) => '${movie.title} ${movie.director}',
+AutocompleteField<String>.async(
+  asyncConfig: AutocompleteAsyncConfig<String>(
+    optionsBuilder: repository.searchCities,
+    debounceDuration: const Duration(milliseconds: 250),
+    minQueryLength: 2,
+    reloadOnQueryChange: true,
+  ),
+  getOptionLabel: (option) => option,
+)
+```
+
+### 7) Async combobox (load once, then local filtering)
+
+Useful when backend returns a bounded dataset.
+
+```dart
+AutocompleteField<String>.async(
+  asyncConfig: AutocompleteAsyncConfig<String>(
+    optionsBuilder: repository.fetchAllCities,
+    loadOnFocus: true,
+    reloadOnQueryChange: false,
+    loadOnlyOnce: true,
+    searchOnEmptyQuery: false,
+    debounceDuration: Duration.zero,
+  ),
+  getOptionLabel: (option) => option,
+)
+```
+
+### 8) Async multiple (load once)
+
+```dart
+AutocompleteField<String>.asyncMultiple(
+  asyncConfig: AutocompleteAsyncConfig<String>(
+    optionsBuilder: repository.fetchAllLabels,
+    loadOnFocus: true,
+    reloadOnQueryChange: false,
+    loadOnlyOnce: true,
+    searchOnEmptyQuery: false,
+  ),
+  values: selectedLabels,
+  onChanged: (values) => setState(() => selectedLabels = values),
+  getOptionLabel: (option) => option,
+)
+```
+
+### 9) Async pagination
+
+```dart
+AutocompleteField<String>.async(
+  asyncConfig: AutocompleteAsyncConfig<String>(
+    optionsBuilder: (_) async => const [],
+    loadOnFocus: true,
+    paginationConfig: AutocompleteAsyncPaginationConfig<String>(
+      pageSize: 20,
+      optionsPageBuilder: (query, page, pageSize) {
+        return repository.fetchPage(query: query, page: page, size: pageSize);
+      },
+      showEndOfListIndicator: true,
+    ),
+  ),
+  getOptionLabel: (option) => option,
+)
+```
+
+### 10) Form validation and save
+
+```dart
+final formKey = GlobalKey<FormState>();
+
+Form(
+  key: formKey,
+  child: Column(
+    children: [
+      AutocompleteField<String>.single(
+        options: const ['Low', 'Medium', 'High'],
+        getOptionLabel: (option) => option,
+        validator: (value) => value == null ? 'Priority is required' : null,
+        onSaved: (value) => priority = value,
+      ),
+      AutocompleteField<String>.multiple(
+        options: const ['UI', 'Backend', 'QA'],
+        getOptionLabel: (option) => option,
+        validator: (values) {
+          if (values == null || values.isEmpty) {
+            return 'Select at least one team';
+          }
+          return null;
+        },
+        onSaved: (values) => teams = values ?? <String>[],
+      ),
+    ],
   ),
 )
 ```
 
-When async results are already filtered by the server, provide `filterOptions` and return the input list unchanged.
-
-## Custom Rendering
+### 11) Custom rendering
 
 ```dart
 AutocompleteField<String>.multiple(
@@ -177,74 +227,62 @@ AutocompleteField<String>.multiple(
   getOptionLabel: (option) => option,
   renderingConfig: AutocompleteRenderingConfig<String>(
     optionBuilder: (context, option) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Expanded(child: Text(option.label)),
-            if (option.isSelected) const Icon(Icons.check, size: 18),
-          ],
-        ),
+      return ListTile(
+        title: Text(option.label),
+        trailing: option.isSelected
+            ? const Icon(Icons.check, size: 18)
+            : null,
       );
     },
   ),
 )
 ```
 
-## Theming
+### 12) Disabled options
 
-The package intentionally leans on Flutter theming primitives:
+```dart
+AutocompleteField<String>.single(
+  options: const ['Open', 'Closed', 'Archived'],
+  getOptionLabel: (option) => option,
+  isOptionDisabled: (option) => option == 'Archived',
+)
+```
 
-- use `InputDecoration` for the field container and labels
-- use `AutocompletePopupConfig` for popup size and surface styling
-- use `AutocompleteChipConfig` for chip spacing, limits, and delete affordances
-- use `AutocompleteRenderingConfig` when you need fully custom rows or chips
+## Async behavior reference
 
-`AutocompleteChipConfig` also supports focused-state tag limiting and capped
-chip/input area growth:
+`AutocompleteAsyncConfig` gives these common patterns:
 
-- `limitTagsWhenFocused` keeps `limitTags` applied while typing
-- `showHiddenCountChip` controls the `+N` summary indicator
-- `maxInputAreaHeight` enables internal scrolling past a height limit
+- Search-as-type: `reloadOnQueryChange: true`
+- Load on focus: `loadOnFocus: true`
+- One request only: `loadOnlyOnce: true`
+- Ignore whitespace-only input: `searchOnEmptyQuery: false`
+- Local filtering after first load: `reloadOnQueryChange: false`
 
-## Accessibility Notes
+## Useful config groups
 
-- The package uses Flutter text field, chip, and tap semantics instead of web ARIA roles.
-- Group headers are visual only.
-- Creatable rows are explicit actions, not implicit raw-text selections.
-- Validation errors render through the field `InputDecoration`.
-- Keyboard shortcuts and arrow-key navigation are intentionally unsupported.
+- `AutocompleteBehaviorConfig`: focus/open/close/clear behavior.
+- `AutocompleteFilterConfig`: matching strategy and custom filter.
+- `AutocompleteSelectionConfig`: keep selected rows visible and indicator behavior.
+- `AutocompleteChipConfig`: chip layout, fixed values, hidden count, max chip area height.
+- `AutocompletePopupConfig`: popup size/surface styling.
+- `AutocompleteRenderingConfig`: option/selected/loading/empty custom builders.
 
-## Mobile Behavior Notes
+## Example app
 
-- Tapping the field focuses the input.
-- Tapping an option selects it.
-- Tapping a creatable row creates a new typed value and selects it.
-- Tapping outside the field closes the popup.
-- The package is designed for virtual-keyboard-first layouts.
+A full runnable showcase exists in `example/lib/main.dart`.
 
-## Layout Notes
+It includes:
 
-Multiple mode uses:
+1. Single and multiple local constructors.
+2. Creatable and grouped flows.
+3. Async search-as-type.
+4. Async load-once combobox and async multiple.
+5. Async pagination.
+6. Form validation and save flows.
 
-- `InputDecorator` as the outer field container
-- a `Wrap` for chips and the text input
-- a borderless inner `TextField`
+## Accessibility and platform scope
 
-This allows:
-
-- vertical growth instead of overflow
-- label floating based on focus, chips, and input text
-- tap-anywhere focusing
-- mobile-friendly chip entry without `prefix` or `prefixIcon`
-
-## No Keyboard Support
-
-This package does not implement:
-
-- physical keyboard shortcuts
-- arrow key navigation
-- enter or escape handling
-- home or end handling
-- desktop-specific interaction patterns
-- virtualized option rendering
+- Uses Flutter text/chip/tap semantics.
+- Validation errors are rendered via `InputDecoration`.
+- Mobile-first behavior.
+- Physical keyboard shortcut/navigation behavior is intentionally out of scope.
