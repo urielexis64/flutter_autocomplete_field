@@ -1,4 +1,4 @@
-## 0.0.2
+## 0.0.2+1
 
 * Added async pagination support for remote option loading.
 * Added async behavior controls: `loadOnlyOnce`, `searchOnEmptyQuery`, and local filtering after first load.
