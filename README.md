@@ -125,6 +125,7 @@ AutocompleteField<String>.async(
     optionsBuilder: repository.searchCities,
     debounceDuration: const Duration(milliseconds: 250),
     minQueryLength: 2,
+    loadOnlyOnce: false,
   ),
   getOptionLabel: (option) => option,
   decoration: const InputDecoration(

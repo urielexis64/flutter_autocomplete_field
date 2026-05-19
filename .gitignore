@@ -109,3 +109,6 @@ fastlane/test_output/
 # Generated docs (si usas dartdoc)
 # --------------------------------------------
 doc/api/
+
+.fvmrc
+.fvm

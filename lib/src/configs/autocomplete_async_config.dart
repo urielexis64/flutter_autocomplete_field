@@ -23,6 +23,8 @@ class AutocompleteAsyncConfig<T> {
     this.minQueryLength = 0,
     this.loadOnFocus = false,
     this.reloadOnQueryChange = true,
+    this.loadOnlyOnce = false,
+    this.searchOnEmptyQuery = false,
     this.retainPreviousOptionsWhileLoading = true,
     this.paginationConfig,
   }) : assert(minQueryLength >= 0);
@@ -58,6 +60,18 @@ class AutocompleteAsyncConfig<T> {
   /// When `false`, options are loaded once, then subsequent input changes are
   /// filtered locally using [AutocompleteFilterConfig].
   final bool reloadOnQueryChange;
+
+  /// Whether remote options should be requested only once per field lifecycle.
+  ///
+  /// When `true`, only the first eligible async request is executed.
+  /// Subsequent interactions rely on locally cached options.
+  final bool loadOnlyOnce;
+
+  /// Whether empty query values (`''`) are allowed to trigger async loads.
+  ///
+  /// When `false`, whitespace-only/empty input will not call [optionsBuilder]
+  /// unless focus bootstrap logic explicitly allows it.
+  final bool searchOnEmptyQuery;
 
   /// Whether previous options should remain visible while a new request loads.
   ///

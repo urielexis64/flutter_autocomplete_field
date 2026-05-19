@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_autocomplete/flutter_autocomplete.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -500,6 +502,453 @@ void main() {
   });
 
   testWidgets(
+    'loadOnFocus with reloadOnQueryChange false loads once even if input changes before response',
+    (tester) async {
+      final queries = <String>[];
+      final completer = Completer<List<String>>();
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.asyncMultiple(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return completer.future;
+              },
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+              reloadOnQueryChange: false,
+            ),
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Fruits'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pump();
+      expect(queries, ['']);
+
+      await tester.enterText(find.byType(TextField), 'a');
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), 'ap');
+      await tester.pump();
+      expect(queries, ['']);
+
+      completer.complete(const ['Apple', 'Banana']);
+      await tester.pumpAndSettle();
+
+      await tester.tapAt(const Offset(380, 60));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+      expect(findPopupText('Apple'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'async multiple with loadOnlyOnce does not reload on refocus after selection',
+    (tester) async {
+      final queries = <String>[];
+      var selected = <String>[];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.asyncMultiple(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return const ['Apple', 'Banana', 'Cherry'];
+              },
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+              reloadOnQueryChange: false,
+              loadOnlyOnce: true,
+              searchOnEmptyQuery: false,
+            ),
+            onChanged: (values) => selected = values,
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Fruits'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+
+      await selectPopupOption(tester, 'Apple');
+      expect(selected, ['Apple']);
+
+      await tester.tapAt(const Offset(380, 60));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+      expect(findPopupText('Banana'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'async multiple does not reload when selecting and unselecting via popup',
+    (tester) async {
+      final queries = <String>[];
+      var selected = <String>[];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.asyncMultiple(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return const ['Apple', 'Banana', 'Cherry'];
+              },
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+              reloadOnQueryChange: false,
+              searchOnEmptyQuery: false,
+            ),
+            values: selected,
+            onChanged: (values) => selected = values,
+            getOptionLabel: (option) => option,
+            selectionConfig: const AutocompleteSelectionConfig(
+              keepSelectedOptionsVisible: true,
+            ),
+            behaviorConfig: const AutocompleteBehaviorConfig(
+              toggleSelectionOnTap: true,
+              closeOnSelect: false,
+              clearInputOnSelect: true,
+            ),
+            decoration: const InputDecoration(labelText: 'Fruits'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+
+      await selectPopupOption(tester, 'Apple');
+      await tester.pumpAndSettle();
+      expect(selected, ['Apple']);
+      expect(queries, ['']);
+
+      await selectPopupOption(tester, 'Apple');
+      await tester.pumpAndSettle();
+      expect(selected, isEmpty);
+      expect(queries, ['']);
+    },
+  );
+
+  testWidgets(
+    'async multiple does not reload when unselecting by deleting a chip',
+    (tester) async {
+      final queries = <String>[];
+      var selected = <String>[];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.asyncMultiple(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return const ['Apple', 'Banana', 'Cherry'];
+              },
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+              reloadOnQueryChange: false,
+              searchOnEmptyQuery: false,
+            ),
+            values: selected,
+            onChanged: (values) => selected = values,
+            getOptionLabel: (option) => option,
+            behaviorConfig: const AutocompleteBehaviorConfig(
+              clearInputOnSelect: true,
+            ),
+            decoration: const InputDecoration(labelText: 'Fruits'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+
+      await selectPopupOption(tester, 'Apple');
+      await tester.pumpAndSettle();
+      expect(selected, ['Apple']);
+      expect(queries, ['']);
+
+      final chipFinder = find.widgetWithText(InputChip, 'Apple');
+      expect(chipFinder, findsOneWidget);
+      final chip = tester.widget<InputChip>(chipFinder);
+      expect(chip.onDeleted, isNotNull);
+      chip.onDeleted!.call();
+      await tester.pumpAndSettle();
+
+      expect(selected, isEmpty);
+      expect(queries, ['']);
+    },
+  );
+
+  testWidgets(
+    'async multiple combobox flow does not reload after select blur and refocus',
+    (tester) async {
+      final queries = <String>[];
+      var selected = <String>[];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return Scaffold(
+                body: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SizedBox(
+                    width: 320,
+                    child: AutocompleteField<String>.asyncMultiple(
+                      asyncConfig: AutocompleteAsyncConfig(
+                        optionsBuilder: (query) async {
+                          queries.add(query);
+                          return const ['Apple', 'Banana', 'Cherry'];
+                        },
+                        debounceDuration: Duration.zero,
+                        loadOnFocus: true,
+                        reloadOnQueryChange: false,
+                        loadOnlyOnce: true,
+                        searchOnEmptyQuery: false,
+                      ),
+                      values: selected,
+                      onChanged: (values) => setState(() => selected = values),
+                      getOptionLabel: (option) => option,
+                      behaviorConfig: const AutocompleteBehaviorConfig(
+                        blurOnSelect: true,
+                        clearInputOnSelect: true,
+                      ),
+                      decoration: const InputDecoration(labelText: 'Fruits'),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+
+      await selectPopupOption(tester, 'Apple');
+      expect(selected, ['Apple']);
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+      expect(findPopupText('Banana'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'loadOnlyOnce persists across widget recreation with external focus node',
+    (tester) async {
+      final queries = <String>[];
+      var selected = <String>[];
+      var version = 0;
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return Scaffold(
+                body: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SizedBox(
+                    width: 320,
+                    child: AutocompleteField<String>.asyncMultiple(
+                      key: ValueKey<int>(version),
+                      focusNode: focusNode,
+                      asyncConfig: AutocompleteAsyncConfig(
+                        optionsBuilder: (query) async {
+                          queries.add(query);
+                          return const ['Apple', 'Banana', 'Cherry'];
+                        },
+                        debounceDuration: Duration.zero,
+                        loadOnFocus: true,
+                        reloadOnQueryChange: false,
+                        loadOnlyOnce: true,
+                      ),
+                      values: selected,
+                      onChanged: (values) => setState(() {
+                        selected = values;
+                        version += 1;
+                      }),
+                      getOptionLabel: (option) => option,
+                      behaviorConfig: const AutocompleteBehaviorConfig(
+                        blurOnSelect: true,
+                        clearInputOnSelect: true,
+                      ),
+                      decoration: const InputDecoration(labelText: 'Fruits'),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+
+      await selectPopupOption(tester, 'Apple');
+      expect(selected, ['Apple']);
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+      expect(findPopupText('Banana'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'loadOnlyOnce persists across widget recreation with external controller',
+    (tester) async {
+      final queries = <String>[];
+      var selected = <String>[];
+      var version = 0;
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return Scaffold(
+                body: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SizedBox(
+                    width: 320,
+                    child: AutocompleteField<String>.asyncMultiple(
+                      key: ValueKey<int>(version),
+                      controller: controller,
+                      asyncConfig: AutocompleteAsyncConfig(
+                        optionsBuilder: (query) async {
+                          queries.add(query);
+                          return const ['Apple', 'Banana', 'Cherry'];
+                        },
+                        debounceDuration: Duration.zero,
+                        loadOnFocus: true,
+                        reloadOnQueryChange: false,
+                        loadOnlyOnce: true,
+                      ),
+                      values: selected,
+                      onChanged: (values) => setState(() {
+                        selected = values;
+                        version += 1;
+                      }),
+                      getOptionLabel: (option) => option,
+                      behaviorConfig: const AutocompleteBehaviorConfig(
+                        blurOnSelect: true,
+                        clearInputOnSelect: true,
+                      ),
+                      decoration: const InputDecoration(labelText: 'Fruits'),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+
+      await selectPopupOption(tester, 'Apple');
+      expect(selected, ['Apple']);
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+      expect(findPopupText('Banana'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'loadOnlyOnce persists across widget recreation without external objects',
+    (tester) async {
+      final queries = <String>[];
+      var selected = <String>[];
+      var version = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return Scaffold(
+                body: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SizedBox(
+                    width: 320,
+                    child: AutocompleteField<String>.asyncMultiple(
+                      key: ValueKey<int>(version),
+                      asyncConfig: AutocompleteAsyncConfig(
+                        optionsBuilder: (query) async {
+                          queries.add(query);
+                          return const ['Apple', 'Banana', 'Cherry'];
+                        },
+                        debounceDuration: Duration.zero,
+                        loadOnFocus: true,
+                        reloadOnQueryChange: false,
+                        loadOnlyOnce: true,
+                      ),
+                      values: selected,
+                      onChanged: (values) => setState(() {
+                        selected = values;
+                        version += 1;
+                      }),
+                      getOptionLabel: (option) => option,
+                      behaviorConfig: const AutocompleteBehaviorConfig(
+                        blurOnSelect: true,
+                        clearInputOnSelect: true,
+                      ),
+                      decoration: const InputDecoration(labelText: 'Fruits'),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+
+      await selectPopupOption(tester, 'Apple');
+      expect(selected, ['Apple']);
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+      expect(findPopupText('Banana'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'async multiple does not reload on refocus after selecting an item',
     (tester) async {
       final queries = <String>[];
@@ -580,6 +1029,49 @@ void main() {
       expect(queries, ['']);
       expect(findPopupText('Hello'), findsNothing);
       expect(findPopupText('World'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'loadOnlyOnce executes a single remote request even with reloadOnQueryChange enabled',
+    (tester) async {
+      final queries = <String>[];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.asyncMultiple(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return const ['Alpha', 'Beta', 'Gamma'];
+              },
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+              reloadOnQueryChange: true,
+              loadOnlyOnce: true,
+            ),
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Items'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+
+      await tester.enterText(find.byType(TextField), 'a');
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'al');
+      await tester.pumpAndSettle();
+
+      await tester.tapAt(const Offset(380, 60));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+      expect(findPopupText('Alpha'), findsOneWidget);
     },
   );
 
@@ -711,6 +1203,41 @@ void main() {
     expect(queries, ['app']);
     expect(findPopupText('Apple'), findsOneWidget);
   });
+
+  testWidgets(
+    'async with loadOnFocus does not reload when only spaces are typed and reloadOnQueryChange is false',
+    (tester) async {
+      final queries = <String>[];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.asyncMultiple(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return const ['Apple', 'Banana'];
+              },
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+              reloadOnQueryChange: false,
+              searchOnEmptyQuery: false,
+            ),
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Fruits'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(queries, ['']);
+
+      await tester.enterText(find.byType(TextField), '   ');
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+    },
+  );
 
   testWidgets('async multiple supports repeated selection', (tester) async {
     var selected = <String>[];

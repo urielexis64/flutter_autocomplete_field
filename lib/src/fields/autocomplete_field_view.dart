@@ -64,6 +64,13 @@ class AutocompleteFieldView<T> extends StatefulWidget {
 /// Private state is intentionally centralized here to keep mode-specific
 /// constructors in [AutocompleteField] small and declarative.
 class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
+  /// Cross-instance cache used by `loadOnlyOnce` across recreated widgets.
+  ///
+  /// Keys come from stable externally managed field objects
+  /// (`controller`/`focusNode`).
+  static final Map<Object, List<Object?>> _loadOnlyOnceOptionsCache =
+      <Object, List<Object?>>{};
+
   /// Controls whether the popup overlay is shown.
   final OverlayPortalController _overlayController = OverlayPortalController();
 
@@ -102,6 +109,12 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Whether async options have been loaded at least once for current config.
   bool _hasLoadedAsyncOptions = false;
+
+  /// Whether an eligible async request has already been executed once.
+  bool _hasRequestedAsyncOptionsOnce = false;
+
+  /// Whether a non-search-as-type focus bootstrap request already ran.
+  bool _hasTriggeredFocusBootstrapLoad = false;
 
   /// Whether an async next-page request is currently in-flight.
   bool _isLoadingMore = false;
@@ -151,12 +164,21 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         widget.configuration.asyncConfig) {
       _asyncController?.dispose();
       _configureAsyncController();
+      _restoreLoadOnlyOnceCacheIfAvailable();
     }
     if (_didExternalSelectionChange(oldWidget.configuration)) {
       final shouldResetText = _config.isMultiple || _config.value == null;
       _syncSelectionFromConfiguration(resetText: shouldResetText);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureFieldWidth());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_config.isAsync && _loadOnlyOnce && !_hasLoadedAsyncOptions) {
+      _restoreLoadOnlyOnceCacheIfAvailable();
+    }
   }
 
   @override
@@ -319,6 +341,47 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   bool get _reloadOnQueryChange =>
       _config.asyncConfig?.reloadOnQueryChange ?? true;
 
+  /// Whether async remote loading is limited to a single request.
+  bool get _loadOnlyOnce => _config.asyncConfig?.loadOnlyOnce ?? false;
+
+  Object? get _loadOnlyOncePersistenceKey {
+    if (_config.controller != null) {
+      return _config.controller;
+    }
+    if (_config.focusNode != null) {
+      return _config.focusNode;
+    }
+    if (!_loadOnlyOnce) {
+      return null;
+    }
+    final route = ModalRoute.of(context);
+    final navigatorState =
+        context.findRootAncestorStateOfType<NavigatorState>();
+    final scopeAnchor = route ?? navigatorState;
+    if (scopeAnchor == null) {
+      return null;
+    }
+
+    final asyncConfig = _config.asyncConfig;
+    if (asyncConfig == null) {
+      return null;
+    }
+
+    return (
+      scopeAnchor,
+      widget.runtimeType,
+      _config.isMultiple,
+      _config.decoration.labelText,
+      _config.decoration.hintText,
+      _config.decoration.helperText,
+      asyncConfig.minQueryLength,
+      asyncConfig.loadOnFocus,
+      asyncConfig.reloadOnQueryChange,
+      asyncConfig.searchOnEmptyQuery,
+      asyncConfig.paginationConfig?.runtimeType,
+    );
+  }
+
   /// Source option list before query filtering.
   List<T> get _allOptions {
     if (_config.isAsync) {
@@ -434,7 +497,11 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
                 pagination.pageSize,
               ),
       onUpdate: (update) {
-        if (!mounted || update.query != _controller.text) {
+        if (!mounted) {
+          return;
+        }
+        if (_reloadOnQueryChange &&
+            update.query != _normalizeAsyncQuery(_controller.text)) {
           return;
         }
         final pagination = _paginationConfig;
@@ -444,6 +511,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
           _isLoading = update.isLoading;
           if (!update.isLoading) {
             _hasLoadedAsyncOptions = true;
+            _cacheLoadOnlyOnceOptions(update.options);
           }
           if (!update.isLoading && pagination != null) {
             _currentAsyncPage = pagination.initialPage;
@@ -571,24 +639,33 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// Requests async options for the current query.
   ///
   /// Respects [AutocompleteAsyncConfig.minQueryLength],
-  /// [AutocompleteAsyncConfig.loadOnFocus], and debounce settings.
+  /// [AutocompleteAsyncConfig.loadOnFocus],
+  /// [AutocompleteAsyncConfig.searchOnEmptyQuery], and debounce settings.
   void _requestAsyncOptions({bool immediate = false}) {
-    final query = _controller.text;
+    final query = _normalizeAsyncQuery(_controller.text);
     final asyncConfig = _config.asyncConfig!;
+
+    if (_loadOnlyOnce &&
+        (_hasRequestedAsyncOptionsOnce || _isLoading || _isDebouncing)) {
+      return;
+    }
+
+    if (immediate && asyncConfig.loadOnFocus && !_reloadOnQueryChange) {
+      _hasTriggeredFocusBootstrapLoad = true;
+    }
     _paginationRequestId += 1;
     _isLoadingMore = false;
 
-    if (!_reloadOnQueryChange && _hasLoadedAsyncOptions) {
-      setState(() {
-        _isDebouncing = false;
-        _isLoading = false;
-      });
+    if (!_reloadOnQueryChange &&
+        (_hasLoadedAsyncOptions || _isLoading || _isDebouncing)) {
       return;
     }
 
     final meetsMinimum = query.length >= asyncConfig.minQueryLength;
-    final allowEmptyFocusLoad = query.isEmpty && asyncConfig.loadOnFocus;
-    if (!meetsMinimum && !allowEmptyFocusLoad) {
+    final allowEmptyQueryLoad = query.isEmpty &&
+        (asyncConfig.searchOnEmptyQuery ||
+            (immediate && asyncConfig.loadOnFocus));
+    if (!meetsMinimum && !allowEmptyQueryLoad) {
       _asyncController?.cancel();
       setState(() {
         if (_reloadOnQueryChange || !_hasLoadedAsyncOptions) {
@@ -613,6 +690,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       }
     });
 
+    _hasRequestedAsyncOptionsOnce = true;
     _asyncController?.request(
       query,
       currentOptions: _asyncOptions,
@@ -781,9 +859,11 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return true;
     }
     final asyncConfig = _config.asyncConfig!;
-    final meetsMinimum = query.length >= asyncConfig.minQueryLength;
-    final allowEmptyFocusLoad = query.isEmpty && asyncConfig.loadOnFocus;
-    if (meetsMinimum || allowEmptyFocusLoad) {
+    final normalizedQuery = _normalizeAsyncQuery(query);
+    final meetsMinimum = normalizedQuery.length >= asyncConfig.minQueryLength;
+    final allowEmptyQueryLoad = normalizedQuery.isEmpty &&
+        (asyncConfig.searchOnEmptyQuery || asyncConfig.loadOnFocus);
+    if (meetsMinimum || allowEmptyQueryLoad) {
       return true;
     }
 
@@ -1176,8 +1256,20 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     if (!_config.isAsync) {
       return false;
     }
-    final asyncConfig = _config.asyncConfig!;
-    if (!asyncConfig.loadOnFocus || _controller.text.isNotEmpty) {
+    if (!_config.asyncConfig!.loadOnFocus ||
+        _normalizeAsyncQuery(_controller.text).isNotEmpty) {
+      return false;
+    }
+    if (_loadOnlyOnce && _hasRequestedAsyncOptionsOnce) {
+      return false;
+    }
+    if (!_reloadOnQueryChange && (_isLoading || _isDebouncing)) {
+      return false;
+    }
+    if (!_reloadOnQueryChange && _hasTriggeredFocusBootstrapLoad) {
+      return false;
+    }
+    if (!_reloadOnQueryChange && _hasLoadedAsyncOptions) {
       return false;
     }
     return !_hasLoadedAsyncOptions || _asyncOptions.isEmpty;
@@ -1201,7 +1293,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return;
     }
 
-    final query = _controller.text;
+    final query = _normalizeAsyncQuery(_controller.text);
     final nextPage = _currentAsyncPage + 1;
     final requestId = ++_paginationRequestId;
     setState(() {
@@ -1216,7 +1308,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       );
       if (!mounted ||
           requestId != _paginationRequestId ||
-          query != _controller.text) {
+          query != _normalizeAsyncQuery(_controller.text)) {
         return;
       }
       setState(() {
@@ -1255,6 +1347,39 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _isLoadingMore = false;
     _paginationRequestId += 1;
   }
+
+  void _restoreLoadOnlyOnceCacheIfAvailable() {
+    if (!_loadOnlyOnce) {
+      return;
+    }
+    final cacheKey = _loadOnlyOncePersistenceKey;
+    if (cacheKey == null) {
+      return;
+    }
+    final cached = _loadOnlyOnceOptionsCache[cacheKey];
+    if (cached == null) {
+      return;
+    }
+    _asyncOptions = cached.cast<T>();
+    _hasLoadedAsyncOptions = true;
+    _hasRequestedAsyncOptionsOnce = true;
+  }
+
+  void _cacheLoadOnlyOnceOptions(List<T> options) {
+    if (!_loadOnlyOnce) {
+      return;
+    }
+    final cacheKey = _loadOnlyOncePersistenceKey;
+    if (cacheKey == null) {
+      return;
+    }
+    _loadOnlyOnceOptionsCache[cacheKey] = List<Object?>.from(options);
+  }
+
+  /// Normalizes async input before request eligibility checks.
+  ///
+  /// Whitespace-only input is treated as an empty query.
+  String _normalizeAsyncQuery(String query) => query.trim();
 
   /// Query used for popup filtering and highlighting.
   String get _activeQuery {
