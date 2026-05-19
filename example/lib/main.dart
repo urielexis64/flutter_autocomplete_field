@@ -13,8 +13,7 @@ class ExampleApp extends StatelessWidget {
     return MaterialApp(
       title: 'flutter_autocomplete examples',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0A6847)),
-        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFFD52028)),
       ),
       home: const ExampleHomePage(),
     );
@@ -62,6 +61,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
     City('Paris', 'France', 'Europe'),
     City('Toronto', 'Canada', 'North America'),
     City('Tokyo', 'Japan', 'Asia'),
+    City('Washington', 'USA', 'North America'),
     City('Seoul', 'South Korea', 'Asia'),
   ];
 
@@ -78,7 +78,6 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
 
   List<String> _multipleFruits = const ['Apple'];
   List<String> _tagValues = const ['critical'];
-  List<String> _asyncSelectedCities = const [];
 
   String? _searchAsTypeCity;
   String? _comboCity;
@@ -89,7 +88,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('flutter_autocomplete - All Use Cases')),
+      appBar: AppBar(title: const Text('Form integration')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -269,34 +268,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
             ),
           ),
           _SectionCard(
-            title: '8) Async multiple + load once',
-            subtitle:
-                'Loads on first focus and reuses local cache while selecting/unselecting.',
-            child: AutocompleteField<String>.asyncMultiple(
-              asyncConfig: AutocompleteAsyncConfig<String>(
-                optionsBuilder: _loadAllCitiesOnce,
-                loadOnFocus: true,
-                reloadOnQueryChange: false,
-                loadOnlyOnce: true,
-                searchOnEmptyQuery: false,
-                debounceDuration: Duration.zero,
-              ),
-              values: _asyncSelectedCities,
-              onChanged: (values) =>
-                  setState(() => _asyncSelectedCities = values),
-              getOptionLabel: (option) => option,
-              behaviorConfig: const AutocompleteBehaviorConfig(
-                closeOnSelect: false,
-                clearInputOnSelect: true,
-              ),
-              decoration: const InputDecoration(
-                labelText: 'Cities to compare',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          _SectionCard(
-            title: '9) Async pagination',
+            title: '8) Async pagination',
             subtitle:
                 'Fetches options page by page when scrolling near list end.',
             child: AutocompleteField<String>.async(
@@ -320,7 +292,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
             ),
           ),
           _SectionCard(
-            title: '10) Form integration + validators + onSaved',
+            title: '9) Form integration + validators + onSaved',
             subtitle: 'Use package fields exactly like regular Form fields.',
             child: Form(
               key: _formKey,
@@ -530,13 +502,17 @@ class City {
 
 Widget _typeToSearch(BuildContext context, String query) {
   if (query.trim().isEmpty) {
-    return const Padding(
-      padding: EdgeInsets.all(16),
-      child: Text('Type to find something...'),
+    return Center(
+      child: const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('Type to find something...'),
+      ),
     );
   }
-  return Padding(
-    padding: const EdgeInsets.all(16),
-    child: Text('No results for "$query"'),
+  return Center(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Text('No results for "$query"'),
+    ),
   );
 }

@@ -7,7 +7,7 @@ class AutocompleteBehaviorConfig {
   const AutocompleteBehaviorConfig({
     this.openOnFocus = true,
     this.autoHighlight = false,
-    this.clearOnBlur = false,
+    this.clearOnBlur = true,
     this.blurOnSelect = false,
     this.disableCloseOnSelect = false,
     this.filterSelectedOptions = false,
