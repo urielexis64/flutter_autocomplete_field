@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../enums/autocomplete_highlight_match_scope.dart';
 import '../configs/autocomplete_selection_config.dart';
+import '../enums/autocomplete_highlight_match_scope.dart';
 import '../models/autocomplete_option_state.dart';
 
 /// Interactive popup row for one autocomplete option.
@@ -20,6 +20,7 @@ class PopupOptionTile<T> extends StatelessWidget {
     this.highlightMatchScope = AutocompleteHighlightMatchScope.allOccurrences,
     this.highlightedMatchTextStyle,
     this.tileKey,
+    this.isGrouping = false,
     super.key,
   });
 
@@ -52,6 +53,9 @@ class PopupOptionTile<T> extends StatelessWidget {
 
   /// Optional key forwarded to the tappable surface.
   final Key? tileKey;
+
+  /// Optional flag to know if the overlay has group headers.
+  final bool isGrouping;
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +95,7 @@ class _DefaultOptionTile<T> extends StatelessWidget {
     required this.highlightMatchCaseSensitive,
     required this.highlightMatchScope,
     this.highlightedMatchTextStyle,
+    this.isGrouping = false,
   });
 
   /// Immutable option snapshot.
@@ -111,14 +116,19 @@ class _DefaultOptionTile<T> extends StatelessWidget {
   /// Optional style for highlighted segments.
   final TextStyle? highlightedMatchTextStyle;
 
+  /// Optional flag to know if the overlay has group headers.
+  final bool isGrouping;
+
   @override
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme.bodyLarge;
     final effectiveTextStyle = state.isDisabled
         ? textStyle?.copyWith(color: Theme.of(context).disabledColor)
         : textStyle;
+    final leftPadding = isGrouping ? 24.0 : 16.0;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding:
+          EdgeInsets.only(left: leftPadding, right: 16, top: 14, bottom: 14),
       child: Row(
         children: [
           Expanded(

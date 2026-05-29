@@ -312,6 +312,7 @@ class AutocompletePopup<T> extends StatelessWidget {
               isDisabled: false,
               isHighlighted: false,
             ),
+            isGrouping: groupingConfig?.groupBy != null,
             onTap: onCreateTap,
             selectionConfig: const AutocompleteSelectionConfig<String>(),
             tileKey:
@@ -415,6 +416,7 @@ class AutocompletePopup<T> extends StatelessWidget {
                 getOptionLabel(highlightedOption as T) == label
             : false,
       ),
+      isGrouping: groupingConfig?.groupBy != null,
       onTap: () => onOptionTap(option),
       builder: renderingConfig?.optionBuilder,
       selectionConfig: selectionConfig,
