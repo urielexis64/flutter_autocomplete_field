@@ -79,6 +79,7 @@ class PopupOptionTile<T> extends StatelessWidget {
               highlightMatchCaseSensitive: highlightMatchCaseSensitive,
               highlightMatchScope: highlightMatchScope,
               highlightedMatchTextStyle: highlightedMatchTextStyle,
+              isGrouping: isGrouping,
             ),
       ),
     );
