@@ -500,8 +500,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         if (!mounted) {
           return;
         }
-        if (_reloadOnQueryChange &&
-            update.query != _normalizeAsyncQuery(_controller.text)) {
+        if (_reloadOnQueryChange && update.query != _normalizedActiveQuery) {
           return;
         }
         final pagination = _paginationConfig;
@@ -642,7 +641,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// [AutocompleteAsyncConfig.loadOnFocus],
   /// [AutocompleteAsyncConfig.searchOnEmptyQuery], and debounce settings.
   void _requestAsyncOptions({bool immediate = false}) {
-    final query = _normalizeAsyncQuery(_controller.text);
+    final query = _normalizedActiveQuery;
     final asyncConfig = _config.asyncConfig!;
 
     if (_loadOnlyOnce &&
@@ -1257,7 +1256,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return false;
     }
     if (!_config.asyncConfig!.loadOnFocus ||
-        _normalizeAsyncQuery(_controller.text).isNotEmpty) {
+        _normalizedActiveQuery.isNotEmpty) {
       return false;
     }
     if (_loadOnlyOnce && _hasRequestedAsyncOptionsOnce) {
@@ -1293,7 +1292,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return;
     }
 
-    final query = _normalizeAsyncQuery(_controller.text);
+    final query = _normalizedActiveQuery;
     final nextPage = _currentAsyncPage + 1;
     final requestId = ++_paginationRequestId;
     setState(() {
@@ -1308,7 +1307,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       );
       if (!mounted ||
           requestId != _paginationRequestId ||
-          query != _normalizeAsyncQuery(_controller.text)) {
+          query != _normalizedActiveQuery) {
         return;
       }
       setState(() {
@@ -1380,6 +1379,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   ///
   /// Whitespace-only input is treated as an empty query.
   String _normalizeAsyncQuery(String query) => query.trim();
+
+  /// Current effective async query after selected-label suppression.
+  String get _normalizedActiveQuery => _normalizeAsyncQuery(_activeQuery);
 
   /// Query used for popup filtering and highlighting.
   String get _activeQuery {

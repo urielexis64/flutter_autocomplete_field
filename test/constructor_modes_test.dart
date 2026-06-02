@@ -502,6 +502,41 @@ void main() {
   });
 
   testWidgets(
+    'async single with an initial value still loads on focus using an empty query',
+    (tester) async {
+      final queries = <String>[];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.async(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return const ['Apple', 'Banana'];
+              },
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+              searchOnEmptyQuery: false,
+            ),
+            value: 'Banana',
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'City'),
+          ),
+        ),
+      );
+
+      expect(find.text('Banana'), findsOneWidget);
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(queries, ['']);
+      expect(findPopupText('Apple'), findsOneWidget);
+      expect(findPopupText('Banana'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'loadOnFocus with reloadOnQueryChange false loads once even if input changes before response',
     (tester) async {
       final queries = <String>[];
