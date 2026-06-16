@@ -1,3 +1,8 @@
+## 0.0.3
+
+* Fixed async single-select focus loading when the field has an initial value, so tapping the field opens the overlay and fetches options as expected.
+* Refreshed release metadata and installation docs for the `0.0.3` package release.
+
 ## 0.0.2+1
 
 * Added async pagination support for remote option loading.
