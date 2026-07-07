@@ -82,13 +82,15 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   String? _searchAsTypeCity;
   String? _comboCity;
   String? _pagedCity;
+  String? _patchedAsyncFruit;
+  final List<String> _patchedAsyncFruits = <String>[];
 
   String? _submittedSummary;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Form integration')),
+      appBar: AppBar(title: const Text('flutter_autocomplete examples')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -366,6 +368,97 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               ),
             ),
           ),
+          _SectionCard(
+            title: '10) External patching for async fields',
+            subtitle:
+                'Patch async single and async multiple values from parent state without changing widget keys.',
+            child: Column(
+              children: [
+                AutocompleteField<String>.async(
+                  asyncConfig: AutocompleteAsyncConfig<String>(
+                    optionsBuilder: _loadAllFruitsOnce,
+                    loadOnFocus: true,
+                    reloadOnQueryChange: false,
+                    loadOnlyOnce: true,
+                    debounceDuration: Duration.zero,
+                  ),
+                  value: _patchedAsyncFruit,
+                  onChanged: (value) =>
+                      setState(() => _patchedAsyncFruit = value),
+                  getOptionLabel: (option) => option,
+                  decoration: const InputDecoration(
+                    labelText: 'Patched async single',
+                    helperText: 'Use the buttons below to patch this field.',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () =>
+                          setState(() => _patchedAsyncFruit = 'Banana'),
+                      child: const Text('Patch single: Banana'),
+                    ),
+                    OutlinedButton(
+                      onPressed: () =>
+                          setState(() => _patchedAsyncFruit = null),
+                      child: const Text('Clear single'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                AutocompleteField<String>.asyncMultiple(
+                  asyncConfig: AutocompleteAsyncConfig<String>(
+                    optionsBuilder: _loadAllFruitsOnce,
+                    loadOnFocus: true,
+                    reloadOnQueryChange: false,
+                    loadOnlyOnce: true,
+                    searchOnEmptyQuery: false,
+                    debounceDuration: Duration.zero,
+                  ),
+                  values: _patchedAsyncFruits,
+                  onChanged: (values) => setState(() {
+                    _patchedAsyncFruits
+                      ..clear()
+                      ..addAll(values);
+                  }),
+                  getOptionLabel: (option) => option,
+                  behaviorConfig: const AutocompleteBehaviorConfig(
+                    closeOnSelect: false,
+                    clearInputOnSelect: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Patched async multiple',
+                    helperText:
+                        'Select items, then patch or clear them externally with the same list instance.',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () => setState(() {
+                        _patchedAsyncFruits
+                          ..clear()
+                          ..addAll(const ['Apple', 'Banana']);
+                      }),
+                      child: const Text('Patch multiple: Apple + Banana'),
+                    ),
+                    OutlinedButton(
+                      onPressed: () => setState(_patchedAsyncFruits.clear),
+                      child: const Text('Clear multiple'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -383,6 +476,11 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   Future<List<String>> _loadAllCitiesOnce(String query) async {
     await Future<void>.delayed(const Duration(milliseconds: 280));
     return _cities.map((city) => city.name).toList(growable: false);
+  }
+
+  Future<List<String>> _loadAllFruitsOnce(String query) async {
+    await Future<void>.delayed(const Duration(milliseconds: 220));
+    return _fruits;
   }
 
   Future<List<String>> _noopOptionsBuilder(String query) async {

@@ -13,7 +13,7 @@ The package is built for touch/virtual-keyboard UX, chip-based multiple mode, as
 
 ```yaml
 dependencies:
-  flutter_autocomplete: ^0.0.3
+  flutter_autocomplete: ^0.0.4
 ```
 
 ```dart
@@ -32,6 +32,12 @@ AutocompleteField<String>.single(
   ),
 )
 ```
+
+## What's New In 0.0.4
+
+- Async multiple fields can now stay open across repeated selections even when the input is cleared after each pick.
+- Async single and async multiple form fields now react correctly to external parent patches without requiring a widget `key` reset.
+- The example app includes a dedicated external-patching demo for async fields.
 
 ## Demo
 
@@ -180,10 +186,43 @@ AutocompleteField<String>.asyncMultiple(
   values: selectedLabels,
   onChanged: (values) => setState(() => selectedLabels = values),
   getOptionLabel: (option) => option,
+  behaviorConfig: const AutocompleteBehaviorConfig(
+    closeOnSelect: false,
+    clearInputOnSelect: true,
+  ),
 )
 ```
 
-### 9) Async pagination
+### 9) External patching from parent/form state
+
+```dart
+AutocompleteField<String>.asyncMultiple(
+  asyncConfig: AutocompleteAsyncConfig<String>(
+    optionsBuilder: repository.fetchAllLabels,
+    loadOnFocus: true,
+    reloadOnQueryChange: false,
+    loadOnlyOnce: true,
+  ),
+  values: selectedLabels,
+  onChanged: (values) {
+    setState(() {
+      selectedLabels
+        ..clear()
+        ..addAll(values);
+    });
+  },
+  getOptionLabel: (option) => option,
+)
+
+// Later, patch externally without changing the widget key:
+setState(() {
+  selectedLabels
+    ..clear()
+    ..addAll(['Urgent', 'Backend']);
+});
+```
+
+### 10) Async pagination
 
 ```dart
 AutocompleteField<String>.async(
@@ -202,7 +241,7 @@ AutocompleteField<String>.async(
 )
 ```
 
-### 10) Form validation and save
+### 11) Form validation and save
 
 ```dart
 final formKey = GlobalKey<FormState>();
@@ -233,7 +272,7 @@ Form(
 )
 ```
 
-### 11) Custom rendering
+### 12) Custom rendering
 
 ```dart
 AutocompleteField<String>.multiple(
@@ -252,7 +291,7 @@ AutocompleteField<String>.multiple(
 )
 ```
 
-### 12) Disabled options
+### 13) Disabled options
 
 ```dart
 AutocompleteField<String>.single(

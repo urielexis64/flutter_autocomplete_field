@@ -1,6 +1,7 @@
 # flutter_autocomplete example
 
-This example app is a runnable cookbook for most package features.
+This example app is a runnable cookbook for most package features, including
+external async field patching without forcing widget key resets.
 
 ## Run it
 
@@ -19,8 +20,8 @@ flutter run
 5. Grouped options with custom option rows and disabled options.
 6. Async search-as-type with debounce and minimum query length.
 7. Async combobox mode that loads once, then filters locally.
-8. Async multiple mode with one-time load and local reuse.
-9. Async pagination with incremental page loading.
-10. Form validation and `onSaved` integration.
+8. Async pagination with incremental page loading.
+9. Form validation and `onSaved` integration.
+10. External patching for async single and async multiple fields.
 
 Main file: [`example/lib/main.dart`](lib/main.dart)

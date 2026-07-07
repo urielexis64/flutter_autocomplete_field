@@ -1,3 +1,9 @@
+## 0.0.4
+
+* Fixed async multiple selection flows so the popup can remain open across repeated selections even when `clearInputOnSelect` clears the field.
+* Fixed async single and async multiple form-field synchronization so external value patches refresh the field without forcing a widget `key` change.
+* Updated package docs and the example app to demonstrate the new async patching behavior for the `0.0.4` release.
+
 ## 0.0.3
 
 * Fixed async single-select focus loading when the field has an initial value, so tapping the field opens the overlay and fetches options as expected.
