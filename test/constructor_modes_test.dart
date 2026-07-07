@@ -1304,6 +1304,66 @@ void main() {
   });
 
   testWidgets(
+    'async multiple refreshes after parent clears the same mutable values list',
+    (tester) async {
+      final selected = <String>[];
+      VoidCallback? patchEmptyValues;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              patchEmptyValues = () => setState(selected.clear);
+              return Scaffold(
+                body: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SizedBox(
+                    width: 320,
+                    child: Form(
+                      child: AutocompleteField<String>.asyncMultiple(
+                        asyncConfig: AutocompleteAsyncConfig(
+                          optionsBuilder: (query) async =>
+                              const ['Apple', 'Banana', 'Cherry'],
+                          debounceDuration: Duration.zero,
+                          loadOnFocus: true,
+                        ),
+                        values: selected,
+                        onChanged: (values) => setState(() {
+                          selected
+                            ..clear()
+                            ..addAll(values);
+                        }),
+                        getOptionLabel: (option) => option,
+                        decoration: const InputDecoration(
+                          labelText: 'Fruits',
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      await selectPopupOption(tester, 'Apple');
+
+      expect(find.widgetWithText(InputChip, 'Apple'), findsOneWidget);
+
+      await tester.tapAt(const Offset(380, 60));
+      await tester.pumpAndSettle();
+
+      patchEmptyValues!.call();
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(InputChip, 'Apple'), findsNothing);
+    },
+  );
+
+  testWidgets(
     'async multiple shows custom empty builder before min query length',
     (tester) async {
       final queries = <String>[];
@@ -1479,6 +1539,68 @@ void main() {
     formKey.currentState!.save();
     expect(savedValue, 'Banana');
   });
+
+  testWidgets(
+    'async single refreshes after parent patches selected value and clears it',
+    (tester) async {
+      String? selected;
+      VoidCallback? patchBanana;
+      VoidCallback? patchNull;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              patchBanana = () => setState(() => selected = 'Banana');
+              patchNull = () => setState(() => selected = null);
+              return Scaffold(
+                body: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SizedBox(
+                    width: 320,
+                    child: Form(
+                      child: AutocompleteField<String>.async(
+                        asyncConfig: AutocompleteAsyncConfig(
+                          optionsBuilder: (query) async =>
+                              const ['Apple', 'Banana'],
+                          debounceDuration: Duration.zero,
+                          loadOnFocus: true,
+                        ),
+                        value: selected,
+                        onChanged: (value) => setState(() => selected = value),
+                        getOptionLabel: (option) => option,
+                        decoration: const InputDecoration(labelText: 'Fruit'),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      await selectPopupOption(tester, 'Apple');
+
+      expect(find.text('Apple'), findsOneWidget);
+
+      await tester.tapAt(const Offset(380, 60));
+      await tester.pumpAndSettle();
+
+      patchBanana!.call();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Apple'), findsNothing);
+      expect(find.text('Banana'), findsOneWidget);
+
+      patchNull!.call();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Banana'), findsNothing);
+    },
+  );
 
   testWidgets('async single form reset clears selected value and input text', (
     tester,

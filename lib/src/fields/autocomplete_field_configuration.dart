@@ -25,6 +25,12 @@ class AutocompleteFieldConfiguration<T> {
 
   static String _defaultGetOptionLabel(dynamic value) => value.toString();
 
+  static List<E> _snapshotList<E>(List<E> values) =>
+      List<E>.unmodifiable(values);
+
+  static List<E>? _snapshotNullableList<E>(List<E>? values) =>
+      values == null ? null : _snapshotList(values);
+
   /// Creates a normalized configuration snapshot.
   ///
   /// Use one of the mode-specific factories instead of this constructor.
@@ -91,7 +97,7 @@ class AutocompleteFieldConfiguration<T> {
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.single,
-      options: options,
+      options: _snapshotList(options),
       creatableConfig: creatableConfig,
       value: value,
       onChanged: onChanged,
@@ -148,9 +154,9 @@ class AutocompleteFieldConfiguration<T> {
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: AutocompleteSelectionMode.multiple,
-      options: options,
+      options: _snapshotList(options),
       creatableConfig: creatableConfig,
-      values: values,
+      values: _snapshotList(values),
       onValuesChanged: onValuesChanged,
       getOptionLabel: getOptionLabel ?? _defaultGetOptionLabel,
       groupingConfig: groupingConfig,
@@ -264,7 +270,7 @@ class AutocompleteFieldConfiguration<T> {
       selectionMode: AutocompleteSelectionMode.multiple,
       asyncConfig: asyncConfig,
       creatableConfig: creatableConfig,
-      values: values,
+      values: _snapshotList(values),
       onValuesChanged: onValuesChanged,
       getOptionLabel: getOptionLabel ?? _defaultGetOptionLabel,
       groupingConfig: groupingConfig,
@@ -416,7 +422,7 @@ class AutocompleteFieldConfiguration<T> {
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
-      options: options,
+      options: _snapshotNullableList(options),
       asyncConfig: asyncConfig,
       creatableConfig: creatableConfig,
       groupingConfig: groupingConfig,
@@ -427,7 +433,9 @@ class AutocompleteFieldConfiguration<T> {
       controller: controller,
       focusNode: focusNode,
       value: identical(value, _unset) ? this.value : value as T?,
-      values: identical(values, _unset) ? this.values : values as List<T>?,
+      values: identical(values, _unset)
+          ? this.values
+          : _snapshotNullableList(values as List<T>?),
       onChanged: onChanged ?? this.onChanged,
       onValuesChanged: onValuesChanged ?? this.onValuesChanged,
       singleValidator: singleValidator,
