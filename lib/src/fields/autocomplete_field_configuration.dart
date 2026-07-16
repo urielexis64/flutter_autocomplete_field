@@ -377,10 +377,10 @@ class AutocompleteFieldConfiguration<T> {
   /// Multiple-mode onSaved callback for form integration.
   final FormFieldSetter<List<T>>? multipleOnSaved;
 
-  /// Whether field interactions are enabled.
+  /// Whether the field is enabled for form participation and disabled styling.
   final bool enabled;
 
-  /// Whether text editing is disabled while still allowing focus.
+  /// Whether the field should remain visually enabled but immutable.
   final bool readOnly;
 
   /// Whether the field should request focus on mount.
@@ -397,6 +397,12 @@ class AutocompleteFieldConfiguration<T> {
 
   /// Whether synthetic create-option behavior is enabled.
   bool get isCreatable => creatableConfig != null;
+
+  /// Whether users can focus the field through package-managed interactions.
+  bool get canRequestFocus => enabled && !readOnly;
+
+  /// Whether users can mutate the current value/query through the package UI.
+  bool get canMutateValue => enabled && !readOnly;
 
   /// Creates a copy overriding mutable runtime values.
   ///

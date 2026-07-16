@@ -170,6 +170,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       final shouldResetText = _config.isMultiple || _config.value == null;
       _syncSelectionFromConfiguration(resetText: shouldResetText);
     }
+    if (!_config.canMutateValue) {
+      _closePopup();
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureFieldWidth());
   }
 
@@ -340,6 +343,12 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// Whether query changes should issue new async requests.
   bool get _reloadOnQueryChange =>
       _config.asyncConfig?.reloadOnQueryChange ?? true;
+
+  /// Whether the field can receive user-triggered focus interactions.
+  bool get _canRequestFocus => _config.canRequestFocus;
+
+  /// Whether the field can mutate selection/query state through the UI.
+  bool get _canMutateValue => _config.canMutateValue;
 
   /// Whether async remote loading is limited to a single request.
   bool get _loadOnlyOnce => _config.asyncConfig?.loadOnlyOnce ?? false;
@@ -580,6 +589,11 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
 
     if (_focusNode.hasFocus) {
+      if (!_canMutateValue) {
+        _closePopup();
+        setState(() {});
+        return;
+      }
       _armSelectedLabelQuerySuppression();
       if (_shouldLoadAsyncOnFocus) {
         _requestAsyncOptions(immediate: true);
@@ -599,6 +613,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Handles query text changes from the input widget.
   void _handleInputChanged(String value) {
+    if (!_canMutateValue) {
+      return;
+    }
     _suppressSelectedLabelQuery = false;
     if (_config.isAsync) {
       _requestAsyncOptions();
@@ -614,6 +631,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// - may trigger async reload on focused async fields;
   /// - re-evaluates popup visibility.
   void _clearField() {
+    if (!_canMutateValue) {
+      return;
+    }
     if (_config.isMultiple) {
       setState(() {
         _selectedValues = <T>[];
@@ -641,6 +661,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// [AutocompleteAsyncConfig.loadOnFocus],
   /// [AutocompleteAsyncConfig.searchOnEmptyQuery], and debounce settings.
   void _requestAsyncOptions({bool immediate = false}) {
+    if (!_canMutateValue) {
+      return;
+    }
     final query = _normalizedActiveQuery;
     final asyncConfig = _config.asyncConfig!;
 
@@ -699,6 +722,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Selects [option], with optional toggle behavior for already-selected rows.
   void _selectOption(T option) {
+    if (!_canMutateValue) {
+      return;
+    }
     if (_config.behaviorConfig.toggleSelectionOnTap &&
         _isOptionSelected(option)) {
       _deselectOption(option);
@@ -733,6 +759,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Creates and selects a synthetic option from the current query.
   void _handleCreateOption() {
+    if (!_canMutateValue) {
+      return;
+    }
     final input = _createOptionInput;
     if (input == null) {
       return;
@@ -766,7 +795,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
     if (_config.behaviorConfig.blurOnSelect) {
       _focusNode.unfocus();
-    } else if (_config.enabled && !_config.readOnly) {
+    } else if (_canRequestFocus) {
       _focusNode.requestFocus();
     }
     if (!shouldClose) {
@@ -776,6 +805,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Deselects [option] from the current selection set.
   void _deselectOption(T option) {
+    if (!_canMutateValue) {
+      return;
+    }
     if (_config.isMultiple) {
       if (_isFixedChip(option)) {
         return;
@@ -803,6 +835,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Removes [value] via chip delete interactions.
   void _removeValue(T value) {
+    if (!_canMutateValue) {
+      return;
+    }
     if (_isFixedChip(value)) {
       return;
     }
@@ -826,6 +861,10 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Opens or closes popup based on current state predicates.
   void _syncOverlayVisibility({bool forceOpen = false}) {
+    if (!_canMutateValue) {
+      _closePopup();
+      return;
+    }
     final shouldOpen = (forceOpen || _focusNode.hasFocus) &&
         (_isLoading ||
             _isLoadingMore ||
@@ -1165,8 +1204,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// Builds clear button when enabled and content exists.
   Widget? _buildClearButton() {
     if (!_config.clearButtonConfig.enabled ||
-        !_config.enabled ||
-        _config.readOnly ||
+        !_canMutateValue ||
         !_hasContentToClear) {
       return null;
     }
@@ -1189,7 +1227,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return null;
     }
 
-    final onPressed = _config.readOnly ? null : _handleDropdownButtonPressed;
+    final onPressed = _canMutateValue ? _handleDropdownButtonPressed : null;
 
     if (_config.dropdownButtonConfig.iconBuilder != null) {
       return _config.dropdownButtonConfig.iconBuilder!(
@@ -1238,6 +1276,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Handles dropdown indicator button presses.
   void _handleDropdownButtonPressed() {
+    if (!_canMutateValue) {
+      return;
+    }
     if (!_focusNode.hasFocus) {
       _focusNode.requestFocus();
     }

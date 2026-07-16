@@ -27,6 +27,13 @@ import 'autocomplete_field_view.dart';
 /// - `autovalidateMode` controls validation timing.
 /// {@endtemplate}
 ///
+/// {@template autocomplete.interactionStates}
+/// Interaction flags:
+/// - `enabled: false` disables the field and its form participation.
+/// - `readOnly: true` keeps enabled styling but blocks text edits, selection
+///   changes, clearing, and chip deletion.
+/// {@endtemplate}
+///
 /// Mobile-first autocomplete input with focused constructors per mode.
 ///
 /// The package does not support physical keyboard navigation, desktop-style
@@ -50,6 +57,8 @@ class AutocompleteField<T> extends StatelessWidget {
   /// in-memory options.
   ///
   /// {@macro autocomplete.formIntegration}
+  ///
+  /// {@macro autocomplete.interactionStates}
   ///
   /// {@macro autocomplete.noKeyboardSupport}
   ///
@@ -138,6 +147,8 @@ class AutocompleteField<T> extends StatelessWidget {
   ///
   /// {@macro autocomplete.formIntegration}
   ///
+  /// {@macro autocomplete.interactionStates}
+  ///
   /// {@macro autocomplete.noKeyboardSupport}
   ///
   /// This constructor supports `Form` validation through
@@ -215,6 +226,8 @@ class AutocompleteField<T> extends StatelessWidget {
   /// API or local database query.
   ///
   /// {@macro autocomplete.formIntegration}
+  ///
+  /// {@macro autocomplete.interactionStates}
   ///
   /// {@macro autocomplete.noKeyboardSupport}
   ///
@@ -297,6 +310,8 @@ class AutocompleteField<T> extends StatelessWidget {
   /// more than one value.
   ///
   /// {@macro autocomplete.formIntegration}
+  ///
+  /// {@macro autocomplete.interactionStates}
   ///
   /// {@macro autocomplete.noKeyboardSupport}
   ///

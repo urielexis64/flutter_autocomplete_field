@@ -40,10 +40,10 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
   /// Input decoration applied to both text and selected-display states.
   final InputDecoration decoration;
 
-  /// Whether user interaction is enabled.
+  /// Whether the field should render using Flutter's enabled/disabled state.
   final bool enabled;
 
-  /// Whether text editing is prevented while still allowing focus.
+  /// Whether the field should remain visually enabled but immutable.
   final bool readOnly;
 
   /// Whether the internal text field should request focus on mount.
@@ -65,6 +65,8 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
   final Widget Function(BuildContext context, T value, String label)?
       selectedItemBuilder;
 
+  bool get _canRequestFocus => enabled && !readOnly;
+
   @override
   Widget build(BuildContext context) {
     final hasCustomSelection = selectedValue != null &&
@@ -75,7 +77,7 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
     if (hasCustomSelection) {
       return GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: enabled && !readOnly ? focusNode.requestFocus : null,
+        onTap: _canRequestFocus ? focusNode.requestFocus : null,
         child: InputDecorator(
           isFocused: false,
           isEmpty: false,

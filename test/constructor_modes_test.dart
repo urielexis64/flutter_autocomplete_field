@@ -172,6 +172,59 @@ void main() {
     expect(findPopupText('Apple'), findsOneWidget);
   });
 
+  testWidgets('disabled single field hides interactive controls', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana'],
+          enabled: false,
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    expect(
+      find.byKey(const ValueKey<String>('autocomplete-dropdown-button')),
+      findsNothing,
+    );
+    expect(tester.widget<TextField>(find.byType(TextField)).enabled, isFalse);
+  });
+
+  testWidgets('readOnly single field stays enabled but does not open', (
+    tester,
+  ) async {
+    final focusNode = FocusNode();
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana'],
+          readOnly: true,
+          focusNode: focusNode,
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    final dropdownButton = tester.widget<IconButton>(
+      find.byKey(const ValueKey<String>('autocomplete-dropdown-button')),
+    );
+    expect(dropdownButton.onPressed, isNull);
+    expect(tester.widget<TextField>(find.byType(TextField)).enabled, isTrue);
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+
+    expect(findPopupSurface(), findsNothing);
+    expect(focusNode.hasFocus, isTrue);
+
+    focusNode.dispose();
+  });
+
   testWidgets('multiple select emits selected values', (tester) async {
     var selected = <String>[];
 

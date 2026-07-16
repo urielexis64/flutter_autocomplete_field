@@ -63,10 +63,10 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
   /// Decoration applied by the outer [InputDecorator].
   final InputDecoration decoration;
 
-  /// Whether interactions are enabled.
+  /// Whether the field should render using Flutter's enabled/disabled state.
   final bool enabled;
 
-  /// Whether typing is disabled while chips remain visible.
+  /// Whether the field should remain visually enabled but immutable.
   final bool readOnly;
 
   /// Whether the text field should request focus on mount.
@@ -84,11 +84,15 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
   /// Optional trailing controls merged into [decoration.suffixIcon].
   final Widget? suffixIcon;
 
+  bool get _canRequestFocus => enabled && !readOnly;
+
+  bool get _canMutateValue => enabled && !readOnly;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: enabled && !readOnly ? focusNode.requestFocus : null,
+      onTap: _canRequestFocus ? focusNode.requestFocus : null,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final chips = _buildChipWidgets(context);
@@ -241,8 +245,9 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
             value: value,
             label: getOptionLabel(value),
             isFixed: isFixed(value),
-            onDeleted:
-                isFixed(value) || readOnly ? null : () => onDelete(value),
+            onDeleted: isFixed(value) || !_canMutateValue
+                ? null
+                : () => onDelete(value),
           ),
         )
         .toList(growable: false);
