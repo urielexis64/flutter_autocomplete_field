@@ -459,6 +459,39 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               ],
             ),
           ),
+          _SectionCard(
+            title: '11) Interaction states (enabled vs readOnly)',
+            subtitle:
+                'Use disabled fields for blocked form interaction, or read-only fields to keep values visible without allowing edits.',
+            child: Column(
+              children: [
+                AutocompleteField<String>.single(
+                  options: _fruits,
+                  enabled: false,
+                  getOptionLabel: (option) => option,
+                  decoration: const InputDecoration(
+                    labelText: 'Disabled field',
+                    helperText:
+                        'Disabled fields do not open the popup or participate like active inputs.',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                AutocompleteField<String>.multiple(
+                  options: _fruits,
+                  values: const ['Apple', 'Banana'],
+                  readOnly: true,
+                  getOptionLabel: (option) => option,
+                  decoration: const InputDecoration(
+                    labelText: 'Read-only field',
+                    helperText:
+                        'Read-only keeps enabled styling but prevents selection, clearing, and chip removal.',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -542,7 +575,8 @@ class _IntroCard extends StatelessWidget {
             Text(
               'Use this page as a cookbook for common app flows: '
               'single/multiple, async search, combobox behavior, pagination, '
-              'creatable options, grouping, custom rendering, and form validation.',
+              'creatable options, grouping, custom rendering, form validation, '
+              'and disabled/read-only interaction states.',
             ),
           ],
         ),

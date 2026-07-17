@@ -1,7 +1,8 @@
 # flutter_autocomplete example
 
 This example app is a runnable cookbook for most package features, including
-external async field patching without forcing widget key resets.
+external async field patching without forcing widget key resets and the
+interaction-state patterns added for `0.0.5`.
 
 ## Run it
 
@@ -23,5 +24,6 @@ flutter run
 8. Async pagination with incremental page loading.
 9. Form validation and `onSaved` integration.
 10. External patching for async single and async multiple fields.
+11. Disabled and read-only interaction-state examples.
 
 Main file: [`example/lib/main.dart`](lib/main.dart)

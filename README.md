@@ -7,13 +7,13 @@ Mobile-first autocomplete for Flutter with focused constructors:
 - `AutocompleteField.async<T>()`
 - `AutocompleteField.asyncMultiple<T>()`
 
-The package is built for touch/virtual-keyboard UX, chip-based multiple mode, async loading, creatable options, and visual grouping.
+The package is built for touch/virtual-keyboard UX, chip-based multiple mode, async loading, creatable options, visual grouping, and popup placement that stays stable through scrolling and viewport changes.
 
 ## Installation
 
 ```yaml
 dependencies:
-  flutter_autocomplete: ^0.0.4
+  flutter_autocomplete: ^0.0.5
 ```
 
 ```dart
@@ -33,11 +33,11 @@ AutocompleteField<String>.single(
 )
 ```
 
-## What's New In 0.0.4
+## What's New In 0.0.5
 
-- Async multiple fields can now stay open across repeated selections even when the input is cleared after each pick.
-- Async single and async multiple form fields now react correctly to external parent patches without requiring a widget `key` reset.
-- The example app includes a dedicated external-patching demo for async fields.
+- All constructors now support `enabled` and `readOnly` so you can distinguish disabled fields from visually enabled but immutable ones.
+- Popup placement is more resilient during virtual-keyboard changes and parent scrolling, keeping the overlay attached to the field as layout changes.
+- The README and example app now include an interaction-state cookbook entry for the `0.0.5` release.
 
 ## Demo
 
@@ -301,6 +301,25 @@ AutocompleteField<String>.single(
 )
 ```
 
+### 14) Disabled vs read-only interaction states
+
+Use `enabled: false` when the field should be disabled and excluded from normal form interaction. Use `readOnly: true` when it should keep enabled styling but block edits, popup selection changes, clearing, and chip deletion.
+
+```dart
+AutocompleteField<String>.multiple(
+  options: const ['Apple', 'Banana', 'Cherry'],
+  values: const ['Apple', 'Banana'],
+  onChanged: (_) {},
+  readOnly: true,
+  getOptionLabel: (option) => option,
+  decoration: const InputDecoration(
+    labelText: 'Locked fruit list',
+    helperText: 'Users can review the values, but cannot change them.',
+    border: OutlineInputBorder(),
+  ),
+)
+```
+
 ## Async behavior reference
 
 `AutocompleteAsyncConfig` gives these common patterns:
@@ -332,6 +351,7 @@ It includes:
 4. Async load-once combobox and async multiple.
 5. Async pagination.
 6. Form validation and save flows.
+7. Disabled and read-only interaction state examples.
 
 ## Accessibility and platform scope
 

@@ -1,3 +1,9 @@
+## 0.0.5
+
+* Added `enabled` and `readOnly` support across all `AutocompleteField` constructors so disabled and immutable form states can be modeled explicitly.
+* Improved popup positioning during on-screen keyboard metric changes and parent scrolling so the overlay stays attached to the field and repositions when available space changes.
+* Updated package docs and the example cookbook for the `0.0.5` release, including interaction-state guidance.
+
 ## 0.0.4
 
 * Fixed async multiple selection flows so the popup can remain open across repeated selections even when `clearInputOnSelect` clears the field.
