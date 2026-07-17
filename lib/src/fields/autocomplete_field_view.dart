@@ -14,24 +14,25 @@ import 'single_autocomplete_input.dart';
 class _PopupPlacement {
   /// Creates immutable placement values for the popup surface.
   const _PopupPlacement({
-    required this.left,
-    this.top,
-    this.bottom,
+    required this.followerAnchor,
+    required this.targetAnchor,
+    required this.horizontalOffset,
+    required this.verticalOffset,
     required this.width,
     required this.maxHeight,
-  }) : assert(
-          (top == null) != (bottom == null),
-          'Provide exactly one vertical anchor: top or bottom.',
-        );
+  });
 
-  /// Left coordinate of the popup surface.
-  final double left;
+  /// Popup anchor used by the follower layer.
+  final Alignment followerAnchor;
 
-  /// Top coordinate of the popup surface when placed below the field.
-  final double? top;
+  /// Field anchor used by the follower layer.
+  final Alignment targetAnchor;
 
-  /// Bottom coordinate of the popup surface when placed above the field.
-  final double? bottom;
+  /// Horizontal delta from the field anchor to the popup anchor.
+  final double horizontalOffset;
+
+  /// Vertical gap between field and popup.
+  final double verticalOffset;
 
   /// Popup width.
   final double width;
@@ -63,7 +64,8 @@ class AutocompleteFieldView<T> extends StatefulWidget {
 ///
 /// Private state is intentionally centralized here to keep mode-specific
 /// constructors in [AutocompleteField] small and declarative.
-class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
+class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
+    with WidgetsBindingObserver {
   /// Cross-instance cache used by `loadOnlyOnce` across recreated widgets.
   ///
   /// Keys come from stable externally managed field objects
@@ -73,6 +75,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   /// Controls whether the popup overlay is shown.
   final OverlayPortalController _overlayController = OverlayPortalController();
+
+  /// Layer link that keeps the popup attached to the field while it moves.
+  final LayerLink _fieldLayerLink = LayerLink();
 
   /// Key for measuring and anchoring the field container.
   final GlobalKey _fieldKey = GlobalKey();
@@ -140,9 +145,16 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
   /// Whether selected text should be ignored as an active filter query.
   bool _suppressSelectedLabelQuery = false;
 
+  /// Last valid popup placement kept during transient metric/layout churn.
+  _PopupPlacement? _lastPopupPlacement;
+
+  /// Coalesces post-frame placement refreshes during keyboard animation.
+  bool _hasScheduledPopupRefresh = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _configureTextEditingController();
     _configureFocusNode();
     _syncSelectionFromConfiguration(resetText: true);
@@ -186,6 +198,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _asyncController?.dispose();
     _focusNode.removeListener(_handleFocusChange);
     if (_ownsFocusNode) {
@@ -248,11 +261,15 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
 
         final configuredWidth =
             widget.configuration.popupConfig.width ?? _fieldWidth;
-        final placement = _resolvePopupPlacement(
+        final resolvedPlacement = _resolvePopupPlacement(
           overlayContext: context,
           targetRect: targetRect,
           configuredWidth: configuredWidth,
         );
+        if (resolvedPlacement != null) {
+          _lastPopupPlacement = resolvedPlacement;
+        }
+        final placement = resolvedPlacement ?? _lastPopupPlacement;
         if (placement == null) {
           return const SizedBox.shrink();
         }
@@ -261,47 +278,59 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         return Stack(
           children: [
             Positioned(
-              left: placement.left,
-              top: placement.top,
-              bottom: placement.bottom,
-              width: placement.width,
-              child: TapRegion(
-                groupId: _tapRegionGroupId,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: placement.width),
-                  child: AutocompletePopup<T>(
-                    options: _visibleOptions,
-                    query: _activeQuery,
-                    getOptionLabel: widget.configuration.getOptionLabel,
-                    isSelected: _isOptionSelected,
-                    onOptionTap: _selectOption,
-                    popupConfig: popupConfig,
-                    selectionConfig: widget.configuration.selectionConfig,
-                    groupingConfig: widget.configuration.groupingConfig,
-                    renderingConfig: widget.configuration.renderingConfig,
-                    isLoading: _isLoading,
-                    highlightedOption: _highlightedOption,
-                    createInput: _createOptionInput,
-                    isOptionDisabled: widget.configuration.isOptionDisabled,
-                    createLabel: _createOptionInput == null
-                        ? null
-                        : _config.creatableConfig?.createLabel?.call(
-                            _createOptionInput!,
-                          ),
-                    onCreateTap: _handleCreateOption,
-                    createOptionBuilder: widget
-                        .configuration.creatableConfig?.createOptionBuilder,
-                    onReachedListEnd: _paginationConfig != null
-                        ? _handlePopupReachedEnd
-                        : null,
-                    loadMoreTriggerOffset:
-                        _paginationConfig?.loadMoreTriggerOffset ?? 120,
-                    isLoadingMore: _isLoadingMore,
-                    hasMoreResults: _hasMoreAsyncResults,
-                    loadingMoreBuilder: _paginationConfig?.loadingMoreBuilder,
-                    endOfListBuilder: _paginationConfig?.endOfListBuilder,
-                    showEndOfListIndicator:
-                        _paginationConfig?.showEndOfListIndicator ?? false,
+              left: 0,
+              top: 0,
+              child: CompositedTransformFollower(
+                link: _fieldLayerLink,
+                showWhenUnlinked: false,
+                targetAnchor: placement.targetAnchor,
+                followerAnchor: placement.followerAnchor,
+                offset: Offset(
+                  placement.horizontalOffset,
+                  placement.verticalOffset,
+                ),
+                child: TapRegion(
+                  groupId: _tapRegionGroupId,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: placement.width),
+                    child: SizedBox(
+                      width: placement.width,
+                      child: AutocompletePopup<T>(
+                        options: _visibleOptions,
+                        query: _activeQuery,
+                        getOptionLabel: widget.configuration.getOptionLabel,
+                        isSelected: _isOptionSelected,
+                        onOptionTap: _selectOption,
+                        popupConfig: popupConfig,
+                        selectionConfig: widget.configuration.selectionConfig,
+                        groupingConfig: widget.configuration.groupingConfig,
+                        renderingConfig: widget.configuration.renderingConfig,
+                        isLoading: _isLoading,
+                        highlightedOption: _highlightedOption,
+                        createInput: _createOptionInput,
+                        isOptionDisabled: widget.configuration.isOptionDisabled,
+                        createLabel: _createOptionInput == null
+                            ? null
+                            : _config.creatableConfig?.createLabel?.call(
+                                _createOptionInput!,
+                              ),
+                        onCreateTap: _handleCreateOption,
+                        createOptionBuilder: widget
+                            .configuration.creatableConfig?.createOptionBuilder,
+                        onReachedListEnd: _paginationConfig != null
+                            ? _handlePopupReachedEnd
+                            : null,
+                        loadMoreTriggerOffset:
+                            _paginationConfig?.loadMoreTriggerOffset ?? 120,
+                        isLoadingMore: _isLoadingMore,
+                        hasMoreResults: _hasMoreAsyncResults,
+                        loadingMoreBuilder:
+                            _paginationConfig?.loadingMoreBuilder,
+                        endOfListBuilder: _paginationConfig?.endOfListBuilder,
+                        showEndOfListIndicator:
+                            _paginationConfig?.showEndOfListIndicator ?? false,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -312,9 +341,20 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       child: TapRegion(
         groupId: _tapRegionGroupId,
         onTapOutside: (_) => _handleTapOutside(),
-        child: Container(key: _fieldKey, child: field),
+        child: CompositedTransformTarget(
+          link: _fieldLayerLink,
+          child: Container(key: _fieldKey, child: field),
+        ),
       ),
     );
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (!_isOpen) {
+      return;
+    }
+    _schedulePopupRefresh();
   }
 
   /// Returns popup config with runtime-constrained [maxHeight].
@@ -930,6 +970,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     _overlayController.hide();
     setState(() {
       _isOpen = false;
+      _lastPopupPlacement = null;
     });
   }
 
@@ -1073,6 +1114,22 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
     }
   }
 
+  /// Refreshes popup placement after layout settles from metric changes.
+  void _schedulePopupRefresh() {
+    if (_hasScheduledPopupRefresh) {
+      return;
+    }
+    _hasScheduledPopupRefresh = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _hasScheduledPopupRefresh = false;
+      if (!mounted || !_isOpen) {
+        return;
+      }
+      _measureFieldWidth();
+      setState(() {});
+    });
+  }
+
   /// Resolves field bounds in overlay coordinate space.
   Rect? _resolveTargetRect(BuildContext overlayContext) {
     final fieldContext = _fieldKey.currentContext;
@@ -1108,12 +1165,14 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return null;
     }
 
-    final mediaQuery = MediaQuery.maybeOf(overlayContext);
     final overlayHeight = overlayRenderObject.size.height;
+    final view = View.of(context);
+    final devicePixelRatio = view.devicePixelRatio;
     const viewportMargin = 4.0;
-    final safeTop = (mediaQuery?.padding.top ?? 0) + viewportMargin;
-    final safeBottom =
-        overlayHeight - (mediaQuery?.viewInsets.bottom ?? 0) - viewportMargin;
+    final safeTop = (view.padding.top / devicePixelRatio) + viewportMargin;
+    final safeBottom = overlayHeight -
+        (view.viewInsets.bottom / devicePixelRatio) -
+        viewportMargin;
     if (safeBottom <= safeTop) {
       return null;
     }
@@ -1145,15 +1204,6 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
       return null;
     }
 
-    final top = prefersBelow
-        ? belowStart.clamp(safeTop, safeBottom - maxHeight).toDouble()
-        : null;
-    final bottom = prefersBelow
-        ? null
-        : (overlayHeight - aboveEnd)
-            .clamp(viewportMargin, overlayHeight - safeTop)
-            .toDouble();
-
     final requestedLeft = targetRect.left + _config.popupConfig.offset.dx;
     final maxLeft = overlayRenderObject.size.width - viewportMargin - width;
     final clampedLeft = requestedLeft
@@ -1162,9 +1212,10 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>> {
         .toDouble();
 
     return _PopupPlacement(
-      left: clampedLeft,
-      top: top,
-      bottom: bottom,
+      followerAnchor: prefersBelow ? Alignment.topLeft : Alignment.bottomLeft,
+      targetAnchor: prefersBelow ? Alignment.bottomLeft : Alignment.topLeft,
+      horizontalOffset: clampedLeft - targetRect.left,
+      verticalOffset: prefersBelow ? verticalGap : -verticalGap,
       width: width,
       maxHeight: maxHeight,
     );

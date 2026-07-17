@@ -4,6 +4,23 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'test_helpers.dart';
 
+void configureTestView(
+  WidgetTester tester, {
+  Size size = const Size(320, 640),
+  double devicePixelRatio = 1.0,
+}) {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = devicePixelRatio;
+  addTearDown(tester.view.reset);
+}
+
+Future<void> pumpKeyboardInset(WidgetTester tester, double bottom) async {
+  tester.view.viewInsets = FakeViewPadding(bottom: bottom);
+  await tester.pump();
+  await tester.pump();
+  await tester.pump();
+}
+
 void main() {
   testWidgets('tapping outside closes the popup', (tester) async {
     await tester.pumpWidget(
@@ -328,5 +345,188 @@ void main() {
     final gap = (fieldTop - popupBottom).abs();
 
     expect(gap, lessThanOrEqualTo(10));
+  });
+
+  testWidgets(
+    'popup stays open through keyboard metric changes and dismissal',
+    (tester) async {
+      configureTestView(tester, size: const Size(320, 640));
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.single(
+            options: const ['Apple', 'Banana', 'Cherry'],
+            focusNode: focusNode,
+            getOptionLabel: (option) => option,
+            popupConfig: const AutocompletePopupConfig(
+              heightAnimationDuration: Duration.zero,
+            ),
+            decoration: const InputDecoration(labelText: 'Fruit'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(findPopupSurface(), findsOneWidget);
+
+      for (final inset in <double>[80, 160, 240]) {
+        await pumpKeyboardInset(tester, inset);
+        expect(findPopupSurface(), findsOneWidget);
+        expect(findPopupText('Apple'), findsOneWidget);
+        expect(focusNode.hasFocus, isTrue);
+      }
+
+      await pumpKeyboardInset(tester, 0);
+
+      expect(findPopupSurface(), findsOneWidget);
+      expect(findPopupText('Apple'), findsOneWidget);
+      expect(focusNode.hasFocus, isTrue);
+    },
+  );
+
+  testWidgets('popup repositions above when keyboard removes space below', (
+    tester,
+  ) async {
+    configureTestView(tester, size: const Size(320, 640));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              const SizedBox(height: 320),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: AutocompleteField<String>.single(
+                  options: const ['Apple', 'Banana', 'Cherry'],
+                  getOptionLabel: (option) => option,
+                  popupConfig: const AutocompletePopupConfig(
+                    maxHeight: 180,
+                    heightAnimationDuration: Duration.zero,
+                  ),
+                  decoration: const InputDecoration(labelText: 'Fruit'),
+                ),
+              ),
+              const Spacer(),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+
+    final fieldRectBefore = tester.getRect(find.byType(TextField));
+    final popupRectBefore = tester.getRect(findPopupSurface());
+    expect(popupRectBefore.top, greaterThanOrEqualTo(fieldRectBefore.bottom));
+
+    await pumpKeyboardInset(tester, 260);
+
+    final fieldRectAfter = tester.getRect(find.byType(TextField));
+    final popupRectAfter = tester.getRect(findPopupSurface());
+
+    expect(findPopupSurface(), findsOneWidget);
+    expect(popupRectAfter.bottom, lessThanOrEqualTo(fieldRectAfter.top + 1));
+  });
+
+  testWidgets('popup remains below when keyboard still leaves space below', (
+    tester,
+  ) async {
+    configureTestView(tester, size: const Size(320, 640));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              const SizedBox(height: 56),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: AutocompleteField<String>.single(
+                  options: const ['Apple', 'Banana', 'Cherry'],
+                  getOptionLabel: (option) => option,
+                  popupConfig: const AutocompletePopupConfig(
+                    maxHeight: 180,
+                    heightAnimationDuration: Duration.zero,
+                  ),
+                  decoration: const InputDecoration(labelText: 'Fruit'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    await pumpKeyboardInset(tester, 120);
+
+    final fieldRect = tester.getRect(find.byType(TextField));
+    final popupRect = tester.getRect(findPopupSurface());
+
+    expect(findPopupSurface(), findsOneWidget);
+    expect(popupRect.top, greaterThanOrEqualTo(fieldRect.bottom - 1));
+  });
+
+  testWidgets('popup stays attached while the field moves in a scroll view', (
+    tester,
+  ) async {
+    configureTestView(tester, size: const Size(320, 640));
+    final focusNode = FocusNode();
+    final scrollController = ScrollController();
+    addTearDown(focusNode.dispose);
+    addTearDown(scrollController.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            controller: scrollController,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 220),
+                  AutocompleteField<String>.single(
+                    options: const ['Apple', 'Banana', 'Cherry'],
+                    focusNode: focusNode,
+                    getOptionLabel: (option) => option,
+                    popupConfig: const AutocompletePopupConfig(
+                      heightAnimationDuration: Duration.zero,
+                    ),
+                    decoration: const InputDecoration(labelText: 'Fruit'),
+                  ),
+                  const SizedBox(height: 800),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+
+    final fieldRectBefore = tester.getRect(find.byType(TextField));
+    final popupRectBefore = tester.getRect(findPopupSurface());
+    final initialGap = popupRectBefore.top - fieldRectBefore.bottom;
+
+    scrollController.jumpTo(120);
+    await tester.pump();
+    await tester.pump();
+
+    final fieldRectAfter = tester.getRect(find.byType(TextField));
+    final popupRectAfter = tester.getRect(findPopupSurface());
+    final updatedGap = popupRectAfter.top - fieldRectAfter.bottom;
+
+    expect(findPopupSurface(), findsOneWidget);
+    expect(focusNode.hasFocus, isTrue);
+    expect((updatedGap - initialGap).abs(), lessThanOrEqualTo(1));
   });
 }
