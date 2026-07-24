@@ -66,6 +66,74 @@ void main() {
     focusNode.dispose();
   });
 
+  testWidgets(
+    'tapping a focused single field reopens the popup after selection',
+    (tester) async {
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.single(
+            options: const ['Apple', 'Banana'],
+            focusNode: focusNode,
+            getOptionLabel: (option) => option,
+            decoration: const InputDecoration(labelText: 'Fruit'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      await selectPopupOption(tester, 'Banana');
+
+      expect(focusNode.hasFocus, isTrue);
+      expect(findPopupSurface(), findsNothing);
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(findPopupSurface(), findsOneWidget);
+      expect(findPopupText('Apple'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'tapping a focused multiple field reopens the popup after selection',
+    (tester) async {
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.multiple(
+            options: const ['Apple', 'Banana'],
+            focusNode: focusNode,
+            getOptionLabel: (option) => option,
+            behaviorConfig: const AutocompleteBehaviorConfig(
+              closeOnSelect: true,
+              clearInputOnSelect: true,
+            ),
+            decoration: const InputDecoration(labelText: 'Fruit'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      await selectPopupOption(tester, 'Banana');
+
+      expect(focusNode.hasFocus, isTrue);
+      expect(findPopupSurface(), findsNothing);
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(findPopupSurface(), findsOneWidget);
+      expect(findPopupText('Apple'), findsOneWidget);
+    },
+  );
+
   testWidgets('clearOnBlur removes the active query', (tester) async {
     await tester.pumpWidget(
       buildTestApp(

@@ -227,6 +227,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
             readOnly: widget.configuration.readOnly,
             autofocus: widget.configuration.autofocus,
             chipConfig: widget.configuration.chipConfig!,
+            onTap: _handleFieldTap,
             renderingConfig: widget.configuration.renderingConfig,
             suffixIcon: _buildTrailingButtons(),
             onChanged: _handleInputChanged,
@@ -238,6 +239,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
             enabled: widget.configuration.enabled,
             readOnly: widget.configuration.readOnly,
             autofocus: widget.configuration.autofocus,
+            onTap: _handleFieldTap,
             onChanged: _handleInputChanged,
             suffixIcon: _buildTrailingButtons(),
             selectedValue: _selectedValue,
@@ -661,6 +663,22 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
       _requestAsyncOptions();
     }
     _syncOverlayVisibility(forceOpen: _focusNode.hasFocus);
+    setState(() {});
+  }
+
+  /// Handles direct taps on the field while preserving focused reopen flows.
+  void _handleFieldTap() {
+    if (!_canMutateValue) {
+      return;
+    }
+    if (!_focusNode.hasFocus && _canRequestFocus) {
+      _focusNode.requestFocus();
+    }
+    _armSelectedLabelQuerySuppression();
+    if (_shouldLoadAsyncOnFocus) {
+      _requestAsyncOptions(immediate: true);
+    }
+    _syncOverlayVisibility(forceOpen: true);
     setState(() {});
   }
 

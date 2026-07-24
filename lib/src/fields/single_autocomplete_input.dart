@@ -23,6 +23,7 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
     required this.enabled,
     required this.readOnly,
     required this.autofocus,
+    required this.onTap,
     required this.onChanged,
     this.suffixIcon,
     this.selectedValue,
@@ -48,6 +49,9 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
 
   /// Whether the internal text field should request focus on mount.
   final bool autofocus;
+
+  /// Called when the field surface is tapped.
+  final VoidCallback onTap;
 
   /// Called when query text changes.
   final ValueChanged<String> onChanged;
@@ -77,7 +81,7 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
     if (hasCustomSelection) {
       return GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: _canRequestFocus ? focusNode.requestFocus : null,
+        onTap: _canRequestFocus ? onTap : null,
         child: InputDecorator(
           isFocused: false,
           isEmpty: false,
@@ -98,6 +102,7 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
       readOnly: readOnly,
       autofocus: autofocus,
       decoration: mergeAutocompleteSuffixIcon(decoration, suffixIcon),
+      onTap: onTap,
       onChanged: onChanged,
     );
   }

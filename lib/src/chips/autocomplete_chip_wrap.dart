@@ -36,6 +36,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     required this.readOnly,
     required this.autofocus,
     required this.chipConfig,
+    required this.onTap,
     required this.onChanged,
     this.suffixIcon,
     this.renderingConfig,
@@ -75,6 +76,9 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
   /// Chip layout and rendering configuration.
   final AutocompleteChipConfig<T> chipConfig;
 
+  /// Called when the field surface is tapped.
+  final VoidCallback onTap;
+
   /// Optional advanced rendering overrides.
   final AutocompleteRenderingConfig<T>? renderingConfig;
 
@@ -92,7 +96,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: _canRequestFocus ? focusNode.requestFocus : null,
+      onTap: _canRequestFocus ? onTap : null,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final chips = _buildChipWidgets(context);
@@ -166,6 +170,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
+                onTap: onTap,
                 onChanged: onChanged,
               ),
             ),
@@ -209,6 +214,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
               border: InputBorder.none,
               contentPadding: EdgeInsets.zero,
             ),
+            onTap: onTap,
             onChanged: onChanged,
           ),
         ),
