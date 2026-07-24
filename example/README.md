@@ -2,7 +2,7 @@
 
 This example app is a runnable cookbook for most package features, including
 external async field patching without forcing widget key resets and the
-interaction-state patterns added for `0.0.5`.
+focused-tap popup reopening behavior documented for `0.0.6`.
 
 ## Run it
 

@@ -13,7 +13,7 @@ The package is built for touch/virtual-keyboard UX, chip-based multiple mode, as
 
 ```yaml
 dependencies:
-  flutter_autocomplete: ^0.0.5
+  flutter_autocomplete: ^0.0.6
 ```
 
 ```dart
@@ -33,11 +33,11 @@ AutocompleteField<String>.single(
 )
 ```
 
-## What's New In 0.0.5
+## What's New In 0.0.6
 
-- All constructors now support `enabled` and `readOnly` so you can distinguish disabled fields from visually enabled but immutable ones.
-- Popup placement is more resilient during virtual-keyboard changes and parent scrolling, keeping the overlay attached to the field as layout changes.
-- The README and example app now include an interaction-state cookbook entry for the `0.0.5` release.
+- Tapping an already-focused field now reopens the popup after an option selection closes it, which matches expected combobox-style touch behavior.
+- The reopen behavior is consistent across both single and multiple constructors.
+- The release includes focused regression tests and refreshed package docs for `0.0.6`.
 
 ## Demo
 

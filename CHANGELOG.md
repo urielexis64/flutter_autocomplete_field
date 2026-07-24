@@ -1,3 +1,9 @@
+## 0.0.6
+
+* Fixed popup reopening when a user taps an already-focused field after selecting an option and the popup closes.
+* Applied the focused-tap reopen behavior consistently across both single and multiple autocomplete input renderers.
+* Added regression coverage for single and multiple focus flows, and refreshed release documentation for `0.0.6`.
+
 ## 0.0.5
 
 * Added `enabled` and `readOnly` support across all `AutocompleteField` constructors so disabled and immutable form states can be modeled explicitly.
