@@ -597,4 +597,64 @@ void main() {
     expect(focusNode.hasFocus, isTrue);
     expect((updatedGap - initialGap).abs(), lessThanOrEqualTo(1));
   });
+
+  testWidgets(
+    'popup scroll does not dismiss focus inside onDrag parent scroll views',
+    (tester) async {
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 120),
+                    AutocompleteField<String>.single(
+                      options: List<String>.generate(
+                        24,
+                        (index) => 'Option $index',
+                      ),
+                      focusNode: focusNode,
+                      getOptionLabel: (option) => option,
+                      popupConfig: const AutocompletePopupConfig(
+                        maxHeight: 160,
+                        heightAnimationDuration: Duration.zero,
+                      ),
+                      decoration: const InputDecoration(labelText: 'Fruit'),
+                    ),
+                    const SizedBox(height: 800),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+
+      expect(findPopupSurface(), findsOneWidget);
+
+      final popupScrollable = find.descendant(
+        of: findPopupSurface(),
+        matching: find.byType(Scrollable),
+      );
+      final scrollableState = tester.state<ScrollableState>(popupScrollable);
+      expect(scrollableState.position.pixels, 0);
+
+      await tester.drag(findPopupSurface(), const Offset(0, -240));
+      await tester.pumpAndSettle();
+
+      expect(findPopupSurface(), findsOneWidget);
+      expect(focusNode.hasFocus, isTrue);
+      expect(scrollableState.position.pixels, greaterThan(0));
+    },
+  );
 }

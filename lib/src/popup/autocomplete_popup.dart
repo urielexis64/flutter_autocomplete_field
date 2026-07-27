@@ -255,22 +255,22 @@ class AutocompletePopup<T> extends StatelessWidget {
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
-    if (onReachedListEnd == null ||
-        isLoading ||
-        isLoadingMore ||
-        !hasMoreResults ||
-        options.isEmpty) {
-      return false;
+    if (onReachedListEnd != null &&
+        !isLoading &&
+        !isLoadingMore &&
+        hasMoreResults &&
+        options.isNotEmpty &&
+        notification.metrics.axis == Axis.vertical) {
+      final remaining =
+          notification.metrics.maxScrollExtent - notification.metrics.pixels;
+      if (remaining <= loadMoreTriggerOffset) {
+        onReachedListEnd!.call();
+      }
     }
-    if (notification.metrics.axis != Axis.vertical) {
-      return false;
-    }
-    final remaining =
-        notification.metrics.maxScrollExtent - notification.metrics.pixels;
-    if (remaining <= loadMoreTriggerOffset) {
-      onReachedListEnd!.call();
-    }
-    return false;
+
+    // Prevent ancestor scroll views with `keyboardDismissBehavior.onDrag`
+    // from treating popup scrolling as an outside drag and closing the field.
+    return true;
   }
 
   /// Produces content slivers for grouped/flat options and creatable action.
