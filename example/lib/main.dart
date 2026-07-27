@@ -92,6 +92,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
     return Scaffold(
       appBar: AppBar(title: const Text('flutter_autocomplete examples')),
       body: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(16),
         children: [
           const _IntroCard(),
@@ -576,7 +577,9 @@ class _IntroCard extends StatelessWidget {
               'Use this page as a cookbook for common app flows: '
               'single/multiple, async search, combobox behavior, pagination, '
               'creatable options, grouping, custom rendering, form validation, '
-              'and disabled/read-only interaction states.',
+              'and disabled/read-only interaction states. The page scroll view '
+              'also uses keyboard-dismiss-on-drag so popup scrolling can be '
+              'validated inside a parent draggable viewport.',
             ),
           ],
         ),

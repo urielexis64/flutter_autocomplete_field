@@ -1,3 +1,9 @@
+## 0.0.7
+
+* Fixed popup scrolling inside parent `SingleChildScrollView` widgets that use `keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag`, so dragging the autocomplete popup no longer dismisses focus and closes the overlay.
+* Preserved popup pagination/load-more notification handling while preventing popup scroll notifications from bubbling into ancestor scroll views.
+* Added regression coverage for popup scrolling inside `onDrag` parent scroll views and refreshed release documentation for `0.0.7`.
+
 ## 0.0.6
 
 * Fixed popup reopening when a user taps an already-focused field after selecting an option and the popup closes.

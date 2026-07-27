@@ -13,7 +13,7 @@ The package is built for touch/virtual-keyboard UX, chip-based multiple mode, as
 
 ```yaml
 dependencies:
-  flutter_autocomplete: ^0.0.6
+  flutter_autocomplete: ^0.0.7
 ```
 
 ```dart
@@ -33,11 +33,11 @@ AutocompleteField<String>.single(
 )
 ```
 
-## What's New In 0.0.6
+## What's New In 0.0.7
 
-- Tapping an already-focused field now reopens the popup after an option selection closes it, which matches expected combobox-style touch behavior.
-- The reopen behavior is consistent across both single and multiple constructors.
-- The release includes focused regression tests and refreshed package docs for `0.0.6`.
+- Dragging the autocomplete popup now scrolls the popup itself even when an ancestor `SingleChildScrollView` uses `keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag`.
+- Popup scroll notifications are contained so parent scroll views no longer dismiss focus and close the overlay during popup interaction.
+- The release includes regression coverage for popup scrolling inside `onDrag` parent scroll views and refreshed package docs for `0.0.7`.
 
 ## Demo
 
