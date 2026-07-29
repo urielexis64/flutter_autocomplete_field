@@ -134,6 +134,139 @@ void main() {
     },
   );
 
+  testWidgets(
+    'multiple mode keeps popup open after a real option tap when closeOnSelect is false',
+    (tester) async {
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.multiple(
+            options: const ['Apple', 'Banana', 'Cherry'],
+            focusNode: focusNode,
+            getOptionLabel: (option) => option,
+            behaviorConfig: const AutocompleteBehaviorConfig(
+              closeOnSelect: false,
+              clearInputOnSelect: true,
+            ),
+            decoration: const InputDecoration(labelText: 'Fruit'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(findPopupSurface(), findsOneWidget);
+
+      await tester.tap(findPopupOption('Apple'));
+      await tester.pumpAndSettle();
+
+      expect(findPopupSurface(), findsOneWidget);
+      expect(focusNode.hasFocus, isTrue);
+      expect(findPopupText('Banana'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'controlled multiple mode keeps popup open after selection when closeOnSelect is false',
+    (tester) async {
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+      var selected = <String>[];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return AutocompleteField<String>.multiple(
+                options: const ['Apple', 'Banana', 'Cherry'],
+                focusNode: focusNode,
+                values: selected,
+                onChanged: (values) => setState(() => selected = values),
+                getOptionLabel: (option) => option,
+                behaviorConfig: const AutocompleteBehaviorConfig(
+                  closeOnSelect: false,
+                  clearInputOnSelect: true,
+                ),
+                decoration: const InputDecoration(labelText: 'Fruit'),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      expect(findPopupSurface(), findsOneWidget);
+
+      await tester.tap(findPopupOption('Apple'));
+      await tester.pumpAndSettle();
+
+      expect(selected, ['Apple']);
+      expect(findPopupSurface(), findsOneWidget);
+      expect(focusNode.hasFocus, isTrue);
+      expect(findPopupText('Banana'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'selection config customizes selected and unselected popup row backgrounds',
+    (tester) async {
+      const selectedColor = Color(0xFFB2DFDB);
+      const unselectedColor = Color(0xFFFFF9C4);
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.multiple(
+            options: const ['Apple', 'Banana', 'Cherry'],
+            getOptionLabel: (option) => option,
+            behaviorConfig: const AutocompleteBehaviorConfig(
+              closeOnSelect: false,
+              clearInputOnSelect: true,
+            ),
+            selectionConfig: const AutocompleteSelectionConfig<String>(
+              selectedBackgroundColor: selectedColor,
+              unselectedBackgroundColor: unselectedColor,
+            ),
+            decoration: const InputDecoration(labelText: 'Fruit'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
+      await tester.tap(findPopupOption('Apple'));
+      await tester.pumpAndSettle();
+
+      final appleMaterials = tester
+          .widgetList<Material>(
+            find.ancestor(
+              of: findPopupOption('Apple'),
+              matching: find.byType(Material),
+            ),
+          )
+          .toList(growable: false);
+      final bananaMaterials = tester
+          .widgetList<Material>(
+            find.ancestor(
+              of: findPopupOption('Banana'),
+              matching: find.byType(Material),
+            ),
+          )
+          .toList(growable: false);
+
+      expect(
+        appleMaterials.any((material) => material.color == selectedColor),
+        isTrue,
+      );
+      expect(
+        bananaMaterials.any((material) => material.color == unselectedColor),
+        isTrue,
+      );
+    },
+  );
+
   testWidgets('clearOnBlur removes the active query', (tester) async {
     await tester.pumpWidget(
       buildTestApp(

@@ -8,6 +8,8 @@ class AutocompleteSelectionConfig<T> {
   const AutocompleteSelectionConfig({
     this.keepSelectedOptionsVisible = true,
     this.showSelectionIndicator = true,
+    this.unselectedBackgroundColor,
+    this.selectedBackgroundColor,
     this.selectionIndicatorBuilder,
   });
 
@@ -18,6 +20,16 @@ class AutocompleteSelectionConfig<T> {
 
   /// Whether selected rows render a visual indicator.
   final bool showSelectionIndicator;
+
+  /// Optional background color used by unselected popup rows.
+  ///
+  /// When null, the default unselected-row color is transparent.
+  final Color? unselectedBackgroundColor;
+
+  /// Optional background color used by selected popup rows.
+  ///
+  /// When null, the default selected-row color comes from the active theme.
+  final Color? selectedBackgroundColor;
 
   /// Optional custom widget for selected-row indicators.
   ///

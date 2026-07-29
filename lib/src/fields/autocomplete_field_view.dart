@@ -858,7 +858,21 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
     }
     if (!shouldClose) {
       _syncOverlayVisibility();
+      _schedulePopupKeepOpenAfterSelection();
     }
+  }
+
+  void _schedulePopupKeepOpenAfterSelection() {
+    if (_config.behaviorConfig.blurOnSelect) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_canMutateValue || !_canRequestFocus) {
+        return;
+      }
+      _focusNode.requestFocus();
+      _syncOverlayVisibility(forceOpen: true);
+    });
   }
 
   /// Deselects [option] from the current selection set.

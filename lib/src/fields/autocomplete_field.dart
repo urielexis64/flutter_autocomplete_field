@@ -392,28 +392,8 @@ class AutocompleteField<T> extends StatelessWidget {
           configuration: _configuration,
         );
       }
-      return FormField<List<T>>(
-        key:
-            ValueKey<Object>(Object.hashAll(_configuration.values ?? const [])),
-        enabled: _configuration.enabled,
-        initialValue: List<T>.from(_configuration.values ?? const []),
-        validator: _configuration.multipleValidator,
-        onSaved: _configuration.multipleOnSaved,
-        autovalidateMode: _configuration.autovalidateMode,
-        builder: (state) {
-          final configuration = _configuration.copyWith(
-            values: List<T>.from(state.value ?? const []),
-            onValuesChanged: (values) {
-              final nextValues = List<T>.unmodifiable(values);
-              state.didChange(nextValues);
-              _configuration.onValuesChanged?.call(nextValues);
-            },
-            decoration: _configuration.decoration.copyWith(
-              errorText: state.errorText,
-            ),
-          );
-          return AutocompleteFieldView<T>(configuration: configuration);
-        },
+      return _MultipleAutocompleteFormField<T>(
+        configuration: _configuration,
       );
     }
 
@@ -444,6 +424,96 @@ class AutocompleteField<T> extends StatelessWidget {
         return AutocompleteFieldView<T>(configuration: configuration);
       },
     );
+  }
+}
+
+class _MultipleAutocompleteFormField<T> extends StatefulWidget {
+  const _MultipleAutocompleteFormField({required this.configuration});
+
+  final AutocompleteFieldConfiguration<T> configuration;
+
+  @override
+  State<_MultipleAutocompleteFormField<T>> createState() =>
+      _MultipleAutocompleteFormFieldState<T>();
+}
+
+class _MultipleAutocompleteFormFieldState<T>
+    extends State<_MultipleAutocompleteFormField<T>> {
+  final GlobalKey<FormFieldState<List<T>>> _formFieldKey =
+      GlobalKey<FormFieldState<List<T>>>();
+
+  @override
+  void didUpdateWidget(covariant _MultipleAutocompleteFormField<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final previous = oldWidget.configuration.values ?? <T>[];
+    final current = widget.configuration.values ?? <T>[];
+    if (_listEquals(previous, current)) {
+      return;
+    }
+
+    final state = _formFieldKey.currentState;
+    if (state == null) {
+      return;
+    }
+
+    final nextValues = List<T>.unmodifiable(current);
+    if (_listEquals(state.value ?? <T>[], nextValues)) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      final currentState = _formFieldKey.currentState;
+      if (currentState == null ||
+          _listEquals(currentState.value ?? <T>[], nextValues)) {
+        return;
+      }
+      currentState.didChange(nextValues);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FormField<List<T>>(
+      key: _formFieldKey,
+      enabled: widget.configuration.enabled,
+      initialValue: List<T>.from(widget.configuration.values ?? const []),
+      validator: widget.configuration.multipleValidator,
+      onSaved: widget.configuration.multipleOnSaved,
+      autovalidateMode: widget.configuration.autovalidateMode,
+      builder: (state) {
+        final configuration = widget.configuration.copyWith(
+          values: List<T>.from(state.value ?? const []),
+          onValuesChanged: (values) {
+            final nextValues = List<T>.unmodifiable(values);
+            state.didChange(nextValues);
+            widget.configuration.onValuesChanged?.call(nextValues);
+          },
+          decoration: widget.configuration.decoration.copyWith(
+            errorText: state.errorText,
+          ),
+        );
+        return AutocompleteFieldView<T>(configuration: configuration);
+      },
+    );
+  }
+
+  bool _listEquals(List<T> a, List<T> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var index = 0; index < a.length; index += 1) {
+      if (!_isEqual(a[index], b[index])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _isEqual(T option, T value) {
+    return widget.configuration.isOptionEqualToValue?.call(option, value) ??
+        option == value;
   }
 }
 

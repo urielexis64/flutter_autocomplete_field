@@ -334,7 +334,7 @@ AutocompleteField<String>.multiple(
 
 - `AutocompleteBehaviorConfig`: focus/open/close/clear behavior.
 - `AutocompleteFilterConfig`: matching strategy and custom filter.
-- `AutocompleteSelectionConfig`: keep selected rows visible and indicator behavior.
+- `AutocompleteSelectionConfig`: keep selected rows visible, customize selected and unselected row backgrounds, and control indicator behavior.
 - `AutocompleteChipConfig`: chip layout, fixed values, hidden count, max chip area height.
 - `AutocompletePopupConfig`: popup size/surface styling.
 - `AutocompleteRenderingConfig`: option/selected/loading/empty custom builders.
