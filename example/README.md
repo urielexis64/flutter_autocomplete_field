@@ -2,8 +2,10 @@
 
 This example app is a runnable cookbook for most package features, including
 external async field patching without forcing widget key resets and the
-popup interaction fixes documented for `0.0.7`, including focused-tap popup
-reopening and popup scrolling inside parent `onDrag` scroll views.
+popup and selection-surface fixes documented for `0.0.8`, including
+focused-tap popup reopening, popup scrolling inside parent `onDrag` scroll
+views, stable local-multiple popup behavior with `closeOnSelect: false`, and
+custom popup row background colors.
 
 ## Run it
 

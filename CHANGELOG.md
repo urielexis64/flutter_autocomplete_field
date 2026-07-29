@@ -1,3 +1,9 @@
+## 0.0.8
+
+* Fixed controlled synchronous multiple-selection fields so `closeOnSelect: false` keeps the popup open after selection just like `asyncMultiple`, instead of recreating the internal form field and dropping popup state.
+* Added `selectedBackgroundColor` and `unselectedBackgroundColor` to `AutocompleteSelectionConfig` so the default popup option tile backgrounds can be customized without supplying a custom option builder.
+* Added regression coverage for controlled local-multiple popup persistence and popup row background customization, and refreshed release docs/example metadata for `0.0.8`.
+
 ## 0.0.7
 
 * Fixed popup scrolling inside parent `SingleChildScrollView` widgets that use `keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag`, so dragging the autocomplete popup no longer dismisses focus and closes the overlay.

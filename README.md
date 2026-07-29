@@ -13,7 +13,7 @@ The package is built for touch/virtual-keyboard UX, chip-based multiple mode, as
 
 ```yaml
 dependencies:
-  flutter_autocomplete: ^0.0.7
+  flutter_autocomplete: ^0.0.8
 ```
 
 ```dart
@@ -33,11 +33,11 @@ AutocompleteField<String>.single(
 )
 ```
 
-## What's New In 0.0.7
+## What's New In 0.0.8
 
-- Dragging the autocomplete popup now scrolls the popup itself even when an ancestor `SingleChildScrollView` uses `keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag`.
-- Popup scroll notifications are contained so parent scroll views no longer dismiss focus and close the overlay during popup interaction.
-- The release includes regression coverage for popup scrolling inside `onDrag` parent scroll views and refreshed package docs for `0.0.7`.
+- Controlled local multiple fields now honor `closeOnSelect: false` without collapsing the popup after parent state updates, matching the async multiple behavior.
+- `AutocompleteSelectionConfig` now supports `selectedBackgroundColor` and `unselectedBackgroundColor` for the default popup option tiles.
+- The release includes regression coverage for controlled multiple popup persistence and popup row background customization, plus refreshed package docs for `0.0.8`.
 
 ## Demo
 
@@ -105,6 +105,10 @@ AutocompleteField<String>.multiple(
   behaviorConfig: const AutocompleteBehaviorConfig(
     closeOnSelect: false,
     clearInputOnSelect: true,
+  ),
+  selectionConfig: const AutocompleteSelectionConfig<String>(
+    selectedBackgroundColor: Color(0xFFE8F5E9),
+    unselectedBackgroundColor: Color(0xFFFFF8E1),
   ),
 )
 ```
