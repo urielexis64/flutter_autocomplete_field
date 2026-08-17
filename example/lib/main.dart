@@ -82,6 +82,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   String? _searchAsTypeCity;
   String? _comboCity;
   String? _pagedCity;
+  String? _adornedFruit = 'Banana';
   String? _patchedAsyncFruit;
   final List<String> _patchedAsyncFruits = <String>[];
 
@@ -499,6 +500,42 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               ],
             ),
           ),
+          _SectionCard(
+            title: '12) Selected-value start adornment',
+            subtitle:
+                'Render a leading widget for the selected value while keeping the underlying text field mounted for focus and async loading flows.',
+            child: AutocompleteField<String>.async(
+              asyncConfig: AutocompleteAsyncConfig<String>(
+                optionsBuilder: _loadAllFruitsOnce,
+                loadOnFocus: true,
+                reloadOnQueryChange: false,
+                loadOnlyOnce: true,
+                searchOnEmptyQuery: false,
+                debounceDuration: Duration.zero,
+              ),
+              value: _adornedFruit,
+              onChanged: (value) => setState(() => _adornedFruit = value),
+              getOptionLabel: (option) => option,
+              renderingConfig: AutocompleteRenderingConfig<String>(
+                startAdornmentBuilder: (context, value, label) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Chip(
+                      label: Text(label),
+                      avatar: const Icon(Icons.sell_outlined, size: 16),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  );
+                },
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Tagged async single',
+                helperText:
+                    'The selected value stays rendered as a leading chip while the text field still handles focus and popup loading.',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -583,9 +620,10 @@ class _IntroCard extends StatelessWidget {
               'Use this page as a cookbook for common app flows: '
               'single/multiple, async search, combobox behavior, pagination, '
               'creatable options, grouping, custom rendering, form validation, '
-              'and disabled/read-only interaction states. The page scroll view '
-              'also uses keyboard-dismiss-on-drag so popup scrolling can be '
-              'validated inside a parent draggable viewport.',
+              'disabled/read-only interaction states, and selected-value start '
+              'adornments. The page scroll view also uses '
+              'keyboard-dismiss-on-drag so popup scrolling can be validated '
+              'inside a parent draggable viewport.',
             ),
           ],
         ),

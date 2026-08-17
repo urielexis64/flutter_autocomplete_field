@@ -13,7 +13,7 @@ The package is built for touch/virtual-keyboard UX, chip-based multiple mode, as
 
 ```yaml
 dependencies:
-  flutter_autocomplete: ^0.0.8
+  flutter_autocomplete: ^0.0.9
 ```
 
 ```dart
@@ -33,11 +33,11 @@ AutocompleteField<String>.single(
 )
 ```
 
-## What's New In 0.0.8
+## What's New In 0.0.9
 
-- Controlled local multiple fields now honor `closeOnSelect: false` without collapsing the popup after parent state updates, matching the async multiple behavior.
-- `AutocompleteSelectionConfig` now supports `selectedBackgroundColor` and `unselectedBackgroundColor` for the default popup option tiles.
-- The release includes regression coverage for controlled multiple popup persistence and popup row background customization, plus refreshed package docs for `0.0.8`.
+- `AutocompleteRenderingConfig` now supports `startAdornmentBuilder` for single-select fields with a selected value.
+- Start adornments keep the underlying `TextField` mounted, which is especially useful for async single fields that need to keep focus, loading, and popup behavior intact.
+- The README and example app now include a selected-value start-adornment cookbook entry for `0.0.9`.
 
 ## Demo
 
@@ -276,7 +276,33 @@ Form(
 )
 ```
 
-### 12) Custom rendering
+### 12) Selected-value start adornment
+
+Use `startAdornmentBuilder` when you want a leading widget for the selected value while still keeping the real `TextField` mounted. This works well for async single fields that need to refocus, reload, or keep showing loading state.
+
+```dart
+AutocompleteField<String>.async(
+  asyncConfig: AutocompleteAsyncConfig<String>(
+    optionsBuilder: repository.fetchAllLabels,
+    loadOnFocus: true,
+    reloadOnQueryChange: false,
+    loadOnlyOnce: true,
+  ),
+  value: selectedLabel,
+  onChanged: (value) => setState(() => selectedLabel = value),
+  getOptionLabel: (option) => option,
+  renderingConfig: AutocompleteRenderingConfig<String>(
+    startAdornmentBuilder: (context, value, label) {
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Chip(label: Text(label)),
+      );
+    },
+  ),
+)
+```
+
+### 13) Custom rendering
 
 ```dart
 AutocompleteField<String>.multiple(
@@ -295,7 +321,7 @@ AutocompleteField<String>.multiple(
 )
 ```
 
-### 13) Disabled options
+### 14) Disabled options
 
 ```dart
 AutocompleteField<String>.single(
@@ -305,7 +331,7 @@ AutocompleteField<String>.single(
 )
 ```
 
-### 14) Disabled vs read-only interaction states
+### 15) Disabled vs read-only interaction states
 
 Use `enabled: false` when the field should be disabled and excluded from normal form interaction. Use `readOnly: true` when it should keep enabled styling but block edits, popup selection changes, clearing, and chip deletion.
 
@@ -355,7 +381,8 @@ It includes:
 4. Async load-once combobox and async multiple.
 5. Async pagination.
 6. Form validation and save flows.
-7. Disabled and read-only interaction state examples.
+7. Selected-value start adornment examples.
+8. Disabled and read-only interaction state examples.
 
 ## Accessibility and platform scope
 

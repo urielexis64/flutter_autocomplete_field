@@ -2,7 +2,8 @@
 
 This example app is a runnable cookbook for most package features, including
 external async field patching without forcing widget key resets and the
-popup and selection-surface fixes documented for `0.0.8`, including
+popup and selection-surface fixes documented for `0.0.8`, plus the
+selected-value start-adornment flow added for `0.0.9`, including
 focused-tap popup reopening, popup scrolling inside parent `onDrag` scroll
 views, stable local-multiple popup behavior with `closeOnSelect: false`, and
 custom popup row background colors.
@@ -28,5 +29,6 @@ flutter run
 9. Form validation and `onSaved` integration.
 10. External patching for async single and async multiple fields.
 11. Disabled and read-only interaction-state examples.
+12. Single-select start adornment example for selected values.
 
 Main file: [`example/lib/main.dart`](lib/main.dart)

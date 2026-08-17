@@ -1,3 +1,9 @@
+## 0.0.9
+
+* Added `startAdornmentBuilder` to `AutocompleteRenderingConfig` so single-select fields can render a selected-value widget at the start of the input without replacing the underlying `TextField`.
+* Kept the single-field `TextField` mounted when using a start adornment, including async focus/loading flows where the popup opens and remote options refresh.
+* Refreshed package docs and the example cookbook for the `0.0.9` release, including a selected-value start-adornment example.
+
 ## 0.0.8
 
 * Fixed controlled synchronous multiple-selection fields so `closeOnSelect: false` keeps the popup open after selection just like `asyncMultiple`, instead of recreating the internal form field and dropping popup state.
