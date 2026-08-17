@@ -40,6 +40,7 @@ class AutocompleteFieldConfiguration<T> {
     required this.behaviorConfig,
     required this.popupConfig,
     required this.decoration,
+    required this.textStyle,
     required this.clearButtonConfig,
     required this.dropdownButtonConfig,
     required this.selectionConfig,
@@ -74,6 +75,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteBehaviorConfig behaviorConfig,
     required AutocompletePopupConfig popupConfig,
     required InputDecoration decoration,
+    required TextStyle? textStyle,
     required AutocompleteClearButtonConfig clearButtonConfig,
     required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
@@ -113,6 +115,7 @@ class AutocompleteFieldConfiguration<T> {
       autovalidateMode: autovalidateMode,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
+      textStyle: textStyle,
       controller: controller,
       focusNode: focusNode,
       singleValidator: validator,
@@ -133,6 +136,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompletePopupConfig popupConfig,
     required AutocompleteChipConfig<T> chipConfig,
     required InputDecoration decoration,
+    required TextStyle? textStyle,
     required AutocompleteClearButtonConfig clearButtonConfig,
     required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
@@ -171,6 +175,7 @@ class AutocompleteFieldConfiguration<T> {
       chipConfig: chipConfig,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
+      textStyle: textStyle,
       controller: controller,
       focusNode: focusNode,
       multipleValidator: validator,
@@ -188,6 +193,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompleteBehaviorConfig behaviorConfig,
     required AutocompletePopupConfig popupConfig,
     required InputDecoration decoration,
+    required TextStyle? textStyle,
     required AutocompleteClearButtonConfig clearButtonConfig,
     required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
@@ -227,6 +233,7 @@ class AutocompleteFieldConfiguration<T> {
       autovalidateMode: autovalidateMode,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
+      textStyle: textStyle,
       controller: controller,
       focusNode: focusNode,
       singleValidator: validator,
@@ -247,6 +254,7 @@ class AutocompleteFieldConfiguration<T> {
     required AutocompletePopupConfig popupConfig,
     required AutocompleteChipConfig<T> chipConfig,
     required InputDecoration decoration,
+    required TextStyle? textStyle,
     required AutocompleteClearButtonConfig clearButtonConfig,
     required AutocompleteDropdownButtonConfig dropdownButtonConfig,
     required AutocompleteSelectionConfig<T> selectionConfig,
@@ -285,6 +293,7 @@ class AutocompleteFieldConfiguration<T> {
       chipConfig: chipConfig,
       isOptionEqualToValue: isOptionEqualToValue,
       decoration: decoration,
+      textStyle: textStyle,
       controller: controller,
       focusNode: focusNode,
       multipleValidator: validator,
@@ -359,6 +368,9 @@ class AutocompleteFieldConfiguration<T> {
   /// Base field decoration.
   final InputDecoration decoration;
 
+  /// Optional text style applied to the internal field input.
+  final TextStyle? textStyle;
+
   /// Optional externally managed text controller.
   final TextEditingController? controller;
 
@@ -414,6 +426,7 @@ class AutocompleteFieldConfiguration<T> {
     ValueChanged<T?>? onChanged,
     ValueChanged<List<T>>? onValuesChanged,
     InputDecoration? decoration,
+    TextStyle? textStyle,
   }) {
     return AutocompleteFieldConfiguration._(
       selectionMode: selectionMode,
@@ -421,6 +434,7 @@ class AutocompleteFieldConfiguration<T> {
       behaviorConfig: behaviorConfig,
       popupConfig: popupConfig,
       decoration: decoration ?? this.decoration,
+      textStyle: textStyle ?? this.textStyle,
       clearButtonConfig: clearButtonConfig,
       dropdownButtonConfig: dropdownButtonConfig,
       selectionConfig: selectionConfig,

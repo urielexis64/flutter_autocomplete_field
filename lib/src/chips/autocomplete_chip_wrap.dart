@@ -32,6 +32,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     required this.controller,
     required this.focusNode,
     required this.decoration,
+    required this.textStyle,
     required this.enabled,
     required this.readOnly,
     required this.autofocus,
@@ -63,6 +64,9 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
 
   /// Decoration applied by the outer [InputDecorator].
   final InputDecoration decoration;
+
+  /// Optional text style forwarded to the embedded [TextField].
+  final TextStyle? textStyle;
 
   /// Whether the field should render using Flutter's enabled/disabled state.
   final bool enabled;
@@ -164,6 +168,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
                 focusNode: focusNode,
                 enabled: enabled,
                 autofocus: autofocus,
+                style: textStyle,
                 decoration: InputDecoration(
                   hintText: chips.isNotEmpty ? decoration.hintText : null,
                   isCollapsed: true,
@@ -209,6 +214,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
             focusNode: focusNode,
             enabled: enabled,
             autofocus: autofocus,
+            style: textStyle,
             decoration: const InputDecoration(
               isCollapsed: true,
               border: InputBorder.none,
@@ -305,7 +311,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     final painter = TextPainter(
       text: TextSpan(
         text: text.isEmpty ? (hintText ?? ' ') : text,
-        style: Theme.of(context).textTheme.bodyLarge,
+        style: textStyle ?? Theme.of(context).textTheme.bodyLarge,
       ),
       textDirection: Directionality.of(context),
       maxLines: 1,

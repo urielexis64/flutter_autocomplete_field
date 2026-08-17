@@ -225,6 +225,29 @@ void main() {
     focusNode.dispose();
   });
 
+  testWidgets('single field forwards textStyle to the internal text field', (
+    tester,
+  ) async {
+    const textStyle = TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: Colors.red,
+    );
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana'],
+          textStyle: textStyle,
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Fruit'),
+        ),
+      ),
+    );
+
+    expect(tester.widget<TextField>(find.byType(TextField)).style, textStyle);
+  });
+
   testWidgets('multiple select emits selected values', (tester) async {
     var selected = <String>[];
 
@@ -246,6 +269,29 @@ void main() {
 
     expect(selected, ['Apple', 'Banana']);
     expect(find.text('Apple'), findsAtLeastNWidgets(1));
+  });
+
+  testWidgets('multiple field forwards textStyle to the embedded text field', (
+    tester,
+  ) async {
+    const textStyle = TextStyle(
+      fontSize: 16,
+      fontStyle: FontStyle.italic,
+      color: Colors.blue,
+    );
+
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.multiple(
+          options: const ['Apple', 'Banana'],
+          textStyle: textStyle,
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Fruits'),
+        ),
+      ),
+    );
+
+    expect(tester.widget<TextField>(find.byType(TextField)).style, textStyle);
   });
 
   testWidgets('multiple mode can toggle selected option off on tap', (

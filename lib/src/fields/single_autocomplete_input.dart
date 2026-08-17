@@ -20,6 +20,7 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
     required this.controller,
     required this.focusNode,
     required this.decoration,
+    required this.textStyle,
     required this.enabled,
     required this.readOnly,
     required this.autofocus,
@@ -41,6 +42,9 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
 
   /// Input decoration applied to both text and selected-display states.
   final InputDecoration decoration;
+
+  /// Optional text style forwarded to the internal [TextField].
+  final TextStyle? textStyle;
 
   /// Whether the field should render using Flutter's enabled/disabled state.
   final bool enabled;
@@ -119,6 +123,7 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
+      style: textStyle,
       decoration: resolvedDecoration,
       onTap: onTap,
       onChanged: onChanged,
