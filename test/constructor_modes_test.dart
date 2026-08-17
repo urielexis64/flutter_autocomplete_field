@@ -590,6 +590,59 @@ void main() {
   );
 
   testWidgets(
+    'async single startAdornmentBuilder keeps text field mounted while loading',
+    (tester) async {
+      final queries = <String>[];
+      final completer = Completer<List<String>>();
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.async(
+            asyncConfig: AutocompleteAsyncConfig(
+              optionsBuilder: (query) async {
+                queries.add(query);
+                return completer.future;
+              },
+              debounceDuration: Duration.zero,
+              loadOnFocus: true,
+              searchOnEmptyQuery: false,
+            ),
+            value: 'Banana',
+            getOptionLabel: (option) => option,
+            renderingConfig: AutocompleteRenderingConfig<String>(
+              startAdornmentBuilder: (context, value, label) {
+                return Text('Tag: $label');
+              },
+            ),
+            decoration: const InputDecoration(labelText: 'City'),
+          ),
+        ),
+      );
+
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.text('Tag: Banana'), findsOneWidget);
+
+      await tester.tap(find.byType(TextField));
+      await tester.pump();
+
+      expect(queries, ['']);
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.text('Tag: Banana'), findsOneWidget);
+      expect(findPopupSurface(), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      completer.complete(const ['Apple', 'Banana']);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.text('Tag: Banana'), findsOneWidget);
+      expect(findPopupSurface(), findsOneWidget);
+      expect(findPopupText('Apple'), findsOneWidget);
+      expect(findPopupText('Banana'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'loadOnFocus with reloadOnQueryChange false loads once even if input changes before response',
     (tester) async {
       final queries = <String>[];

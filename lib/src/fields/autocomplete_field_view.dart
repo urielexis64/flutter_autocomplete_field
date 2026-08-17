@@ -139,6 +139,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
   /// Whether popup is currently open.
   bool _isOpen = false;
 
+  /// Whether a user interaction should open the popup after focus is acquired.
+  bool _pendingOpenOnFocus = false;
+
   /// Measured field width used as popup-width fallback.
   double? _fieldWidth;
 
@@ -246,6 +249,8 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
             selectedLabel: _selectedValue == null
                 ? null
                 : widget.configuration.getOptionLabel(_selectedValue as T),
+            startAdornmentBuilder:
+                widget.configuration.renderingConfig?.startAdornmentBuilder,
             selectedItemBuilder:
                 widget.configuration.renderingConfig?.selectedItemBuilder,
           );
@@ -632,6 +637,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
 
     if (_focusNode.hasFocus) {
       if (!_canMutateValue) {
+        _pendingOpenOnFocus = false;
         _closePopup();
         setState(() {});
         return;
@@ -640,10 +646,12 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
       if (_shouldLoadAsyncOnFocus) {
         _requestAsyncOptions(immediate: true);
       }
-      if (_config.behaviorConfig.openOnFocus) {
+      if (_config.behaviorConfig.openOnFocus || _pendingOpenOnFocus) {
         _syncOverlayVisibility(forceOpen: true);
       }
+      _pendingOpenOnFocus = false;
     } else {
+      _pendingOpenOnFocus = false;
       _suppressSelectedLabelQuery = false;
       if (_config.behaviorConfig.clearOnBlur) {
         _clearQueryOnBlur();
@@ -671,14 +679,18 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
     if (!_canMutateValue) {
       return;
     }
-    if (!_focusNode.hasFocus && _canRequestFocus) {
+    final hadFocus = _focusNode.hasFocus;
+    if (!hadFocus && _canRequestFocus) {
+      _pendingOpenOnFocus = true;
       _focusNode.requestFocus();
     }
     _armSelectedLabelQuerySuppression();
-    if (_shouldLoadAsyncOnFocus) {
+    if (hadFocus && _shouldLoadAsyncOnFocus) {
       _requestAsyncOptions(immediate: true);
     }
-    _syncOverlayVisibility(forceOpen: true);
+    if (hadFocus) {
+      _syncOverlayVisibility(forceOpen: true);
+    }
     setState(() {});
   }
 
@@ -1362,17 +1374,21 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
     if (!_canMutateValue) {
       return;
     }
-    if (!_focusNode.hasFocus) {
+    final hadFocus = _focusNode.hasFocus;
+    if (!hadFocus) {
+      _pendingOpenOnFocus = true;
       _focusNode.requestFocus();
     }
     _armSelectedLabelQuerySuppression();
 
-    if (_shouldLoadAsyncOnFocus) {
+    if (hadFocus && _shouldLoadAsyncOnFocus) {
       _requestAsyncOptions(immediate: true);
     }
 
-    _openPopup();
-    _syncOverlayVisibility(forceOpen: true);
+    if (hadFocus) {
+      _openPopup();
+      _syncOverlayVisibility(forceOpen: true);
+    }
   }
 
   bool get _shouldLoadAsyncOnFocus {

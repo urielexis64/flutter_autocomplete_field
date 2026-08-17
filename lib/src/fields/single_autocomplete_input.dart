@@ -28,6 +28,7 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
     this.suffixIcon,
     this.selectedValue,
     this.selectedLabel,
+    this.startAdornmentBuilder,
     this.selectedItemBuilder,
     super.key,
   });
@@ -65,6 +66,10 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
   /// Label for [selectedValue], precomputed by the parent.
   final String? selectedLabel;
 
+  /// Optional selected-value adornment rendered at the start of the text field.
+  final Widget Function(BuildContext context, T value, String label)?
+      startAdornmentBuilder;
+
   /// Optional custom selected-value builder used when unfocused.
   final Widget Function(BuildContext context, T value, String label)?
       selectedItemBuilder;
@@ -73,6 +78,19 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final startAdornment = selectedValue != null &&
+            selectedLabel != null &&
+            startAdornmentBuilder != null
+        ? startAdornmentBuilder!.call(
+            context,
+            selectedValue as T,
+            selectedLabel!,
+          )
+        : null;
+    final resolvedDecoration = mergeAutocompleteSuffixIcon(
+      mergeAutocompletePrefix(decoration, startAdornment),
+      suffixIcon,
+    );
     final hasCustomSelection = selectedValue != null &&
         selectedLabel != null &&
         !focusNode.hasFocus &&
@@ -85,7 +103,7 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
         child: InputDecorator(
           isFocused: false,
           isEmpty: false,
-          decoration: mergeAutocompleteSuffixIcon(decoration, suffixIcon),
+          decoration: resolvedDecoration,
           child: selectedItemBuilder!.call(
             context,
             selectedValue as T,
@@ -101,7 +119,7 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
-      decoration: mergeAutocompleteSuffixIcon(decoration, suffixIcon),
+      decoration: resolvedDecoration,
       onTap: onTap,
       onChanged: onChanged,
     );

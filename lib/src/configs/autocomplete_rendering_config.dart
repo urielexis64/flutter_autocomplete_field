@@ -9,6 +9,7 @@ class AutocompleteRenderingConfig<T> {
   /// Creates rendering override configuration.
   const AutocompleteRenderingConfig({
     this.optionBuilder,
+    this.startAdornmentBuilder,
     this.selectedItemBuilder,
     this.selectedItemsBuilder,
     this.groupBuilder,
@@ -27,6 +28,13 @@ class AutocompleteRenderingConfig<T> {
     BuildContext context,
     AutocompleteOptionState<T> option,
   )? optionBuilder;
+
+  /// Custom start adornment for single-select fields with a selected value.
+  ///
+  /// Unlike [selectedItemBuilder], this keeps the underlying [TextField]
+  /// mounted while adding a selected-value widget at the start of the input.
+  final Widget Function(BuildContext context, T value, String label)?
+      startAdornmentBuilder;
 
   /// Custom builder for single-select displayed value when not focused.
   final Widget Function(BuildContext context, T value, String label)?

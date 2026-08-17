@@ -1,5 +1,30 @@
 import 'package:flutter/material.dart';
 
+/// Merges an internal leading widget into [InputDecoration.prefix].
+///
+/// This keeps a user-provided prefix and a package-provided selected-value
+/// adornment visible at the same time for single-field rendering.
+InputDecoration mergeAutocompletePrefix(
+  InputDecoration decoration,
+  Widget? prefix,
+) {
+  if (prefix == null) {
+    return decoration;
+  }
+
+  final existingPrefix = decoration.prefix;
+  if (existingPrefix == null) {
+    return decoration.copyWith(prefix: prefix);
+  }
+
+  return decoration.copyWith(
+    prefix: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [existingPrefix, prefix],
+    ),
+  );
+}
+
 /// Merges an internal trailing control container into [InputDecoration].
 ///
 /// This helper keeps custom user-provided suffix widgets and package-provided
