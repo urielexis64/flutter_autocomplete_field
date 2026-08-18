@@ -83,6 +83,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   String? _comboCity;
   String? _pagedCity;
   String? _adornedFruit = 'Banana';
+  String? _styledFruit = 'Cherry';
   String? _patchedAsyncFruit;
   final List<String> _patchedAsyncFruits = <String>[];
 
@@ -536,6 +537,28 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               ),
             ),
           ),
+          _SectionCard(
+            title: '13) Custom text style',
+            subtitle:
+                'Use textStyle for per-field input text styling without changing the surrounding theme.',
+            child: AutocompleteField<String>.single(
+              options: _fruits,
+              value: _styledFruit,
+              onChanged: (value) => setState(() => _styledFruit = value),
+              getOptionLabel: (option) => option,
+              textStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFFBF360C),
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Styled single field',
+                helperText:
+                    'This styles only the field text, without a local Theme wrapper.',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -621,9 +644,9 @@ class _IntroCard extends StatelessWidget {
               'single/multiple, async search, combobox behavior, pagination, '
               'creatable options, grouping, custom rendering, form validation, '
               'disabled/read-only interaction states, and selected-value start '
-              'adornments. The page scroll view also uses '
-              'keyboard-dismiss-on-drag so popup scrolling can be validated '
-              'inside a parent draggable viewport.',
+              'adornments, plus per-field text styling. The page scroll view '
+              'also uses keyboard-dismiss-on-drag so popup scrolling can be '
+              'validated inside a parent draggable viewport.',
             ),
           ],
         ),

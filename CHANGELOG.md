@@ -1,3 +1,9 @@
+## 0.0.10
+
+* Added a `textStyle` parameter to all `AutocompleteField` constructors so the internal input text can be styled per widget without relying on a surrounding theme override.
+* Applied `textStyle` consistently across single, multiple, async, and async-multiple input renderers, including the embedded text field used inside chip-based multiple mode.
+* Added regression coverage for single and multiple text-style forwarding, and refreshed package docs/example metadata for `0.0.10`.
+
 ## 0.0.9
 
 * Added `startAdornmentBuilder` to `AutocompleteRenderingConfig` so single-select fields can render a selected-value widget at the start of the input without replacing the underlying `TextField`.

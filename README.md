@@ -13,7 +13,7 @@ The package is built for touch/virtual-keyboard UX, chip-based multiple mode, as
 
 ```yaml
 dependencies:
-  flutter_autocomplete: ^0.0.9
+  flutter_autocomplete: ^0.0.10
 ```
 
 ```dart
@@ -33,11 +33,11 @@ AutocompleteField<String>.single(
 )
 ```
 
-## What's New In 0.0.9
+## What's New In 0.0.10
 
-- `AutocompleteRenderingConfig` now supports `startAdornmentBuilder` for single-select fields with a selected value.
-- Start adornments keep the underlying `TextField` mounted, which is especially useful for async single fields that need to keep focus, loading, and popup behavior intact.
-- The README and example app now include a selected-value start-adornment cookbook entry for `0.0.9`.
+- All `AutocompleteField` constructors now support `textStyle` for per-widget input text styling.
+- The style is forwarded to both single-field and chip-based multiple-field input renderers instead of requiring a surrounding `Theme` override.
+- The release includes regression coverage for text-style forwarding and refreshed package docs for `0.0.10`.
 
 ## Demo
 
@@ -302,7 +302,29 @@ AutocompleteField<String>.async(
 )
 ```
 
-### 13) Custom rendering
+### 13) Custom text style
+
+Use `textStyle` when you want to style the input text for one field only without changing the app-wide `Theme`.
+
+```dart
+AutocompleteField<String>.single(
+  options: const ['Apple', 'Banana', 'Cherry'],
+  value: selectedFruit,
+  onChanged: (value) => setState(() => selectedFruit = value),
+  getOptionLabel: (option) => option,
+  textStyle: const TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    color: Colors.deepOrange,
+  ),
+  decoration: const InputDecoration(
+    labelText: 'Styled fruit',
+    border: OutlineInputBorder(),
+  ),
+)
+```
+
+### 14) Custom rendering
 
 ```dart
 AutocompleteField<String>.multiple(
@@ -321,7 +343,7 @@ AutocompleteField<String>.multiple(
 )
 ```
 
-### 14) Disabled options
+### 15) Disabled options
 
 ```dart
 AutocompleteField<String>.single(
@@ -331,7 +353,7 @@ AutocompleteField<String>.single(
 )
 ```
 
-### 15) Disabled vs read-only interaction states
+### 16) Disabled vs read-only interaction states
 
 Use `enabled: false` when the field should be disabled and excluded from normal form interaction. Use `readOnly: true` when it should keep enabled styling but block edits, popup selection changes, clearing, and chip deletion.
 
@@ -382,7 +404,8 @@ It includes:
 5. Async pagination.
 6. Form validation and save flows.
 7. Selected-value start adornment examples.
-8. Disabled and read-only interaction state examples.
+8. Per-field input text styling examples.
+9. Disabled and read-only interaction state examples.
 
 ## Accessibility and platform scope
 
