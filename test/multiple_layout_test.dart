@@ -143,6 +143,58 @@ void main() {
         find.descendant(of: field, matching: find.text('Delta')), findsNothing);
   });
 
+  testWidgets(
+    'tapping the hidden-count chip expands hidden chips without focusing',
+    (tester) async {
+      final focusNode = FocusNode();
+
+      await tester.pumpWidget(
+        buildTestApp(
+          AutocompleteField<String>.multiple(
+            options: const ['Alpha', 'Beta', 'Gamma', 'Delta'],
+            values: const ['Alpha', 'Beta', 'Gamma', 'Delta'],
+            focusNode: focusNode,
+            getOptionLabel: (option) => option,
+            chipConfig: const AutocompleteChipConfig<String>(limitTags: 2),
+            decoration: const InputDecoration(labelText: 'Tags'),
+          ),
+          width: 220,
+        ),
+      );
+
+      final field = find.byWidgetPredicate(
+        (widget) =>
+            widget is InputDecorator && widget.decoration.labelText == 'Tags',
+      );
+      expect(
+        find.descendant(of: field, matching: find.text('+2')),
+        findsOneWidget,
+      );
+      expect(focusNode.hasFocus, isFalse);
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('autocomplete-hidden-count-chip')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(focusNode.hasFocus, isFalse);
+      expect(findPopupSurface(), findsNothing);
+      expect(
+        find.descendant(of: field, matching: find.text('+2')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: field, matching: find.text('Gamma')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: field, matching: find.text('Delta')),
+        findsOneWidget,
+      );
+      focusNode.dispose();
+    },
+  );
+
   testWidgets('maxInputAreaHeight caps chip/input area height with scroll', (
     tester,
   ) async {

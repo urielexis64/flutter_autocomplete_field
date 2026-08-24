@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../configs/autocomplete_chip_config.dart';
@@ -20,7 +21,7 @@ import '../theme/autocomplete_defaults.dart';
 /// This structure keeps the field mobile-friendly: it can grow vertically
 /// without overflow, supports tap-anywhere focus, and keeps label floating
 /// semantics aligned with [InputDecorator.isFocused]/`isEmpty`.
-class AutocompleteChipWrap<T> extends StatelessWidget {
+class AutocompleteChipWrap<T> extends StatefulWidget {
   /// Creates a chip-wrapped multiple-selection input.
   ///
   /// The caller owns [controller] and [focusNode] lifecycles.
@@ -92,29 +93,76 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
   /// Optional trailing controls merged into [decoration.suffixIcon].
   final Widget? suffixIcon;
 
-  bool get _canRequestFocus => enabled && !readOnly;
+  @override
+  State<AutocompleteChipWrap<T>> createState() =>
+      _AutocompleteChipWrapState<T>();
+}
 
-  bool get _canMutateValue => enabled && !readOnly;
+class _AutocompleteChipWrapState<T> extends State<AutocompleteChipWrap<T>> {
+  bool _expandedHiddenChips = false;
+
+  bool get _canRequestFocus => widget.enabled && !widget.readOnly;
+
+  bool get _canMutateValue => widget.enabled && !widget.readOnly;
+
+  bool get _canCollapseHiddenChips {
+    final limitTags = widget.chipConfig.limitTags;
+    return limitTags != null &&
+        widget.values.length > limitTags &&
+        (widget.chipConfig.limitTagsWhenFocused || !widget.focusNode.hasFocus);
+  }
+
+  bool get _hasCollapsedHiddenChips =>
+      _canCollapseHiddenChips && !_expandedHiddenChips;
+
+  @override
+  void didUpdateWidget(covariant AutocompleteChipWrap<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final valuesChanged = !listEquals(oldWidget.values, widget.values);
+    final chipConfigChanged =
+        oldWidget.chipConfig.limitTags != widget.chipConfig.limitTags ||
+        oldWidget.chipConfig.limitTagsWhenFocused !=
+            widget.chipConfig.limitTagsWhenFocused ||
+        oldWidget.chipConfig.showHiddenCountChip !=
+            widget.chipConfig.showHiddenCountChip;
+    final shouldResetExpansion =
+        valuesChanged || chipConfigChanged || !_canCollapseHiddenChips;
+    if (shouldResetExpansion && _expandedHiddenChips) {
+      _expandedHiddenChips = false;
+    }
+  }
+
+  void _handleHiddenCountChipTap() {
+    if (!_hasCollapsedHiddenChips || !widget.enabled) {
+      return;
+    }
+    setState(() {
+      _expandedHiddenChips = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: _canRequestFocus ? onTap : null,
+      onTap: _canRequestFocus ? widget.onTap : null,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final chips = _buildChipWidgets(context);
           final inputWidth = _measureInputWidth(
             context,
-            controller.text,
-            decoration.hintText,
+            widget.controller.text,
+            widget.decoration.hintText,
             constraints.maxWidth,
           );
 
           return InputDecorator(
-            isFocused: focusNode.hasFocus,
-            isEmpty: controller.text.isEmpty && values.isEmpty,
-            decoration: mergeAutocompleteSuffixIcon(decoration, suffixIcon),
+            isFocused: widget.focusNode.hasFocus,
+            isEmpty: widget.controller.text.isEmpty && widget.values.isEmpty,
+            decoration: mergeAutocompleteSuffixIcon(
+              widget.decoration,
+              widget.suffixIcon,
+            ),
             child: _buildChipArea(
               constraints: constraints,
               chips: chips,
@@ -131,7 +179,8 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     required List<Widget> chips,
     required double inputWidth,
   }) {
-    if (chipConfig.layoutMode == AutocompleteChipLayoutMode.horizontalScroll) {
+    if (widget.chipConfig.layoutMode ==
+        AutocompleteChipLayoutMode.horizontalScroll) {
       return _buildHorizontalChipArea(
         constraints: constraints,
         chips: chips,
@@ -155,35 +204,36 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
       key: const ValueKey<String>('autocomplete-chip-layout-wrap'),
       width: constraints.maxWidth,
       child: Wrap(
-        spacing: chipConfig.spacing,
-        runSpacing: chipConfig.runSpacing,
+        spacing: widget.chipConfig.spacing,
+        runSpacing: widget.chipConfig.runSpacing,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           ...chips,
-          if (!readOnly)
+          if (!widget.readOnly)
             SizedBox(
               width: inputWidth,
               child: TextField(
-                controller: controller,
-                focusNode: focusNode,
-                enabled: enabled,
-                autofocus: autofocus,
-                style: textStyle,
+                controller: widget.controller,
+                focusNode: widget.focusNode,
+                enabled: widget.enabled,
+                autofocus: widget.autofocus,
+                style: widget.textStyle,
                 decoration: InputDecoration(
-                  hintText: chips.isNotEmpty ? decoration.hintText : null,
+                  hintText:
+                      chips.isNotEmpty ? widget.decoration.hintText : null,
                   isCollapsed: true,
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
-                onTap: onTap,
-                onChanged: onChanged,
+                onTap: widget.onTap,
+                onChanged: widget.onChanged,
               ),
             ),
         ],
       ),
     );
 
-    final maxHeight = chipConfig.maxInputAreaHeight;
+    final maxHeight = widget.chipConfig.maxInputAreaHeight;
     if (maxHeight == null) {
       return content;
     }
@@ -206,22 +256,22 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
   }) {
     final children = <Widget>[
       ..._withHorizontalSpacing(chips),
-      if (!readOnly)
+      if (!widget.readOnly)
         SizedBox(
           width: inputWidth,
           child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            autofocus: autofocus,
-            style: textStyle,
+            controller: widget.controller,
+            focusNode: widget.focusNode,
+            enabled: widget.enabled,
+            autofocus: widget.autofocus,
+            style: widget.textStyle,
             decoration: const InputDecoration(
               isCollapsed: true,
               border: InputBorder.none,
               contentPadding: EdgeInsets.zero,
             ),
-            onTap: onTap,
-            onChanged: onChanged,
+            onTap: widget.onTap,
+            onChanged: widget.onChanged,
           ),
         ),
     ];
@@ -243,7 +293,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     }
     final spaced = <Widget>[children.first];
     for (var index = 1; index < children.length; index += 1) {
-      spaced.add(SizedBox(width: chipConfig.spacing));
+      spaced.add(SizedBox(width: widget.chipConfig.spacing));
       spaced.add(children[index]);
     }
     return spaced;
@@ -251,38 +301,47 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
 
   /// Builds visible chip widgets using default or custom renderers.
   List<Widget> _buildChipWidgets(BuildContext context) {
-    final chips = values
+    final chips = widget.values
         .map(
           (value) => AutocompleteChipState<T>(
             value: value,
-            label: getOptionLabel(value),
-            isFixed: isFixed(value),
-            onDeleted: isFixed(value) || !_canMutateValue
+            label: widget.getOptionLabel(value),
+            isFixed: widget.isFixed(value),
+            onDeleted: widget.isFixed(value) || !_canMutateValue
                 ? null
-                : () => onDelete(value),
+                : () => widget.onDelete(value),
           ),
         )
         .toList(growable: false);
 
-    if (renderingConfig?.selectedItemsBuilder case final builder?) {
+    if (widget.renderingConfig?.selectedItemsBuilder case final builder?) {
       return builder(context, chips);
     }
 
-    final shouldCollapse = chipConfig.limitTags != null &&
-        chips.length > chipConfig.limitTags! &&
-        (chipConfig.limitTagsWhenFocused || !focusNode.hasFocus);
+    final shouldCollapse = _hasCollapsedHiddenChips;
     final visible = shouldCollapse
-        ? chips.take(chipConfig.limitTags!).toList(growable: false)
+        ? chips.take(widget.chipConfig.limitTags!).toList(growable: false)
         : chips;
 
     final widgets =
         visible.map((chip) => _buildChip(context, chip)).toList(growable: true);
 
-    if (shouldCollapse && chipConfig.showHiddenCountChip) {
+    if (shouldCollapse && widget.chipConfig.showHiddenCountChip) {
       final hiddenCount = chips.length - visible.length;
       widgets.add(
-        chipConfig.hiddenCountChipBuilder?.call(context, hiddenCount) ??
-            InputChip(label: Text('+$hiddenCount')),
+        GestureDetector(
+          key: const ValueKey<String>('autocomplete-hidden-count-chip'),
+          behavior: HitTestBehavior.opaque,
+          onTap: _handleHiddenCountChipTap,
+          child: AbsorbPointer(
+            child:
+                widget.chipConfig.hiddenCountChipBuilder?.call(
+                  context,
+                  hiddenCount,
+                ) ??
+                InputChip(label: Text('+$hiddenCount')),
+          ),
+        ),
       );
     }
 
@@ -291,11 +350,11 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
 
   /// Builds one chip using [AutocompleteChipConfig.chipBuilder] when present.
   Widget _buildChip(BuildContext context, AutocompleteChipState<T> chip) {
-    return chipConfig.chipBuilder?.call(context, chip) ??
+    return widget.chipConfig.chipBuilder?.call(context, chip) ??
         InputChip(
           label: Text(chip.label),
           onDeleted: chip.onDeleted,
-          deleteIcon: chipConfig.deleteIcon,
+          deleteIcon: widget.chipConfig.deleteIcon,
         );
   }
 
@@ -311,7 +370,7 @@ class AutocompleteChipWrap<T> extends StatelessWidget {
     final painter = TextPainter(
       text: TextSpan(
         text: text.isEmpty ? (hintText ?? ' ') : text,
-        style: textStyle ?? Theme.of(context).textTheme.bodyLarge,
+        style: widget.textStyle ?? Theme.of(context).textTheme.bodyLarge,
       ),
       textDirection: Directionality.of(context),
       maxLines: 1,
