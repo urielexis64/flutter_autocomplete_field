@@ -82,6 +82,7 @@ void main() {
             optionsBuilder: (query) async => const ['Apple', 'Banana'],
             debounceDuration: Duration.zero,
           ),
+          filterConfig: const AutocompleteFilterConfig<String>(enabled: true),
           onChanged: (value) => selected = value,
           getOptionLabel: (option) => option,
           creatableConfig: const AutocompleteCreatableConfig<String>(
@@ -124,8 +125,9 @@ void main() {
     await selectCreateOption(tester, 'Mango');
     expect(selected, 'Mango');
 
-    await tester
-        .tap(find.byKey(const ValueKey<String>('autocomplete-clear-button')));
+    await tester.tap(
+      find.byKey(const ValueKey<String>('autocomplete-clear-button')),
+    );
     await tester.pumpAndSettle();
     expect(selected, isNull);
 

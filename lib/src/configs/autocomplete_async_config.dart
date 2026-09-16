@@ -57,8 +57,9 @@ class AutocompleteAsyncConfig<T> {
 
   /// Whether typing a new query should trigger a new async request.
   ///
-  /// When `false`, options are loaded once, then subsequent input changes are
-  /// filtered locally using [AutocompleteFilterConfig].
+  /// When `false`, options are loaded once and subsequent input changes do not
+  /// call [optionsBuilder]. To filter the cached response locally, provide an
+  /// [AutocompleteFilterConfig] with filtering enabled on the field.
   final bool reloadOnQueryChange;
 
   /// Whether remote options should be requested only once per field lifecycle.

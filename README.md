@@ -158,6 +158,9 @@ AutocompleteField<String>.async(
 )
 ```
 
+Async fields display the complete list returned by `optionsBuilder` by default,
+so remote filtering, ranking, and alias matching are preserved.
+
 ### 7) Async combobox (load once, then local filtering)
 
 Useful when backend returns a bounded dataset.
@@ -172,6 +175,7 @@ AutocompleteField<String>.async(
     searchOnEmptyQuery: false,
     debounceDuration: Duration.zero,
   ),
+  filterConfig: const AutocompleteFilterConfig<String>(enabled: true),
   getOptionLabel: (option) => option,
 )
 ```
@@ -187,6 +191,7 @@ AutocompleteField<String>.asyncMultiple(
     loadOnlyOnce: true,
     searchOnEmptyQuery: false,
   ),
+  filterConfig: const AutocompleteFilterConfig<String>(enabled: true),
   values: selectedLabels,
   onChanged: (values) => setState(() => selectedLabels = values),
   getOptionLabel: (option) => option,
@@ -376,16 +381,16 @@ AutocompleteField<String>.multiple(
 
 `AutocompleteAsyncConfig` gives these common patterns:
 
-- Search-as-type: `reloadOnQueryChange: true`
+- Search-as-type: `reloadOnQueryChange: true`; each builder response is shown unchanged by default.
 - Load on focus: `loadOnFocus: true`
 - One request only: `loadOnlyOnce: true`
 - Ignore whitespace-only input: `searchOnEmptyQuery: false`
-- Local filtering after first load: `reloadOnQueryChange: false`
+- Local filtering after first load: `reloadOnQueryChange: false` plus `AutocompleteFilterConfig(enabled: true)`
 
 ## Useful config groups
 
 - `AutocompleteBehaviorConfig`: focus/open/close/clear behavior.
-- `AutocompleteFilterConfig`: matching strategy and custom filter.
+- `AutocompleteFilterConfig`: opt into client-side matching for async fields, customize matching, or set `enabled: false` to show source options unchanged.
 - `AutocompleteSelectionConfig`: keep selected rows visible, customize selected and unselected row backgrounds, and control indicator behavior.
 - `AutocompleteChipConfig`: chip layout, fixed values, hidden count, max chip area height.
 - `AutocompletePopupConfig`: popup size/surface styling.

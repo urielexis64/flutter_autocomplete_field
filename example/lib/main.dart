@@ -268,6 +268,9 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                 searchOnEmptyQuery: false,
                 debounceDuration: Duration.zero,
               ),
+              filterConfig: const AutocompleteFilterConfig<String>(
+                enabled: true,
+              ),
               value: _comboCity,
               onChanged: (value) => setState(() => _comboCity = value),
               getOptionLabel: (option) => option,

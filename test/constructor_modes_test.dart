@@ -29,79 +29,72 @@ void main() {
     expect(find.text('Banana'), findsOneWidget);
   });
 
-  testWidgets(
-    'single mode reopens with all options after selecting a value',
-    (tester) async {
-      await tester.pumpWidget(
-        buildTestApp(
-          AutocompleteField<String>.single(
-            options: const ['Apple', 'Banana'],
-            getOptionLabel: (option) => option,
-            decoration: const InputDecoration(labelText: 'Fruit'),
-          ),
+  testWidgets('single mode reopens with all options after selecting a value', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana'],
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Fruit'),
         ),
-      );
+      ),
+    );
 
-      await tester.tap(find.byType(TextField));
-      await tester.pumpAndSettle();
-      await selectPopupOption(tester, 'Banana');
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    await selectPopupOption(tester, 'Banana');
 
-      await tester.tap(find.byKey(const Key('outside-area')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(TextField));
-      await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('outside-area')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
 
-      expect(findPopupText('Apple'), findsOneWidget);
-      expect(findPopupText('Banana'), findsOneWidget);
-    },
-  );
+    expect(findPopupText('Apple'), findsOneWidget);
+    expect(findPopupText('Banana'), findsOneWidget);
+  });
 
-  testWidgets(
-    'single mode keeps selected indicator on reopen',
-    (tester) async {
-      await tester.pumpWidget(
-        buildTestApp(
-          AutocompleteField<String>.single(
-            options: const ['Apple', 'Banana'],
-            getOptionLabel: (option) => option,
-            decoration: const InputDecoration(labelText: 'Fruit'),
-          ),
+  testWidgets('single mode keeps selected indicator on reopen', (tester) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.single(
+          options: const ['Apple', 'Banana'],
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Fruit'),
         ),
-      );
+      ),
+    );
 
-      await tester.tap(find.byType(TextField));
-      await tester.pumpAndSettle();
-      await selectPopupOption(tester, 'Banana');
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    await selectPopupOption(tester, 'Banana');
 
-      await tester.tap(find.byKey(const Key('outside-area')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(TextField));
-      await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('outside-area')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
 
-      expect(
-        find.descendant(
-          of: findPopupOption('Banana'),
-          matching: find.byIcon(Icons.check),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: findPopupOption('Apple'),
-          matching: find.byIcon(Icons.check),
-        ),
-        findsNothing,
-      );
-    },
-  );
+    expect(
+      find.descendant(
+        of: findPopupOption('Banana'),
+        matching: find.byIcon(Icons.check),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: findPopupOption('Apple'),
+        matching: find.byIcon(Icons.check),
+      ),
+      findsNothing,
+    );
+  });
 
   testWidgets(
     'single mode marks initial object value as selected by matching label',
     (tester) async {
-      final options = const [
-        _City('1', 'Paris'),
-        _City('2', 'London'),
-      ];
+      final options = const [_City('1', 'Paris'), _City('2', 'London')];
       final initialValue = const _City('99', 'London');
 
       await tester.pumpWidget(
@@ -372,8 +365,9 @@ void main() {
       ),
     );
 
-    await tester
-        .tap(find.byKey(const ValueKey<String>('autocomplete-clear-button')));
+    await tester.tap(
+      find.byKey(const ValueKey<String>('autocomplete-clear-button')),
+    );
     await tester.pumpAndSettle();
 
     expect(selected, isNull);
@@ -395,8 +389,9 @@ void main() {
       ),
     );
 
-    await tester
-        .tap(find.byKey(const ValueKey<String>('autocomplete-clear-button')));
+    await tester.tap(
+      find.byKey(const ValueKey<String>('autocomplete-clear-button')),
+    );
     await tester.pumpAndSettle();
 
     expect(selected, isEmpty);
@@ -423,7 +418,9 @@ void main() {
     expect(findPopupText('Apple'), findsOneWidget);
     expect(
       find.descendant(
-          of: findPopupSurface(), matching: find.byIcon(Icons.check)),
+        of: findPopupSurface(),
+        matching: find.byIcon(Icons.check),
+      ),
       findsOneWidget,
     );
   });
@@ -510,8 +507,9 @@ void main() {
     expect(_countHighlightedSegments(foobooText, highlightColor), 1);
   });
 
-  testWidgets('option highlighting can include all occurrences',
-      (tester) async {
+  testWidgets('option highlighting can include all occurrences', (
+    tester,
+  ) async {
     const highlightColor = Colors.red;
 
     await tester.pumpWidget(
@@ -535,7 +533,7 @@ void main() {
     expect(_countHighlightedSegments(foobooText, highlightColor), 4);
   });
 
-  testWidgets('async single loads options from the async builder', (
+  testWidgets('async single shows all options from the async builder', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -544,9 +542,7 @@ void main() {
           asyncConfig: AutocompleteAsyncConfig(
             optionsBuilder: (query) async {
               await Future<void>.delayed(const Duration(milliseconds: 10));
-              return ['Apple', 'Banana']
-                  .where((option) => option.toLowerCase().contains(query))
-                  .toList(growable: false);
+              return const ['Apple', 'Banana'];
             },
             debounceDuration: Duration.zero,
             minQueryLength: 1,
@@ -563,7 +559,7 @@ void main() {
 
     await tester.pumpAndSettle();
     expect(find.text('Apple'), findsOneWidget);
-    expect(find.text('Banana'), findsNothing);
+    expect(find.text('Banana'), findsOneWidget);
   });
 
   testWidgets('loadOnFocus loads once and does not reload on refocus', (
@@ -1175,49 +1171,49 @@ void main() {
     },
   );
 
-  testWidgets(
-    'async can load once and then filter locally without reloading',
-    (tester) async {
-      final queries = <String>[];
+  testWidgets('async can load once and then filter locally without reloading', (
+    tester,
+  ) async {
+    final queries = <String>[];
 
-      await tester.pumpWidget(
-        buildTestApp(
-          AutocompleteField<String>.async(
-            asyncConfig: AutocompleteAsyncConfig(
-              optionsBuilder: (query) async {
-                queries.add(query);
-                return const ['Hello', 'World'];
-              },
-              debounceDuration: Duration.zero,
-              loadOnFocus: true,
-              reloadOnQueryChange: false,
-            ),
-            getOptionLabel: (option) => option,
-            decoration: const InputDecoration(labelText: 'Greeting'),
+    await tester.pumpWidget(
+      buildTestApp(
+        AutocompleteField<String>.async(
+          asyncConfig: AutocompleteAsyncConfig(
+            optionsBuilder: (query) async {
+              queries.add(query);
+              return const ['Hello', 'World'];
+            },
+            debounceDuration: Duration.zero,
+            loadOnFocus: true,
+            reloadOnQueryChange: false,
           ),
+          filterConfig: const AutocompleteFilterConfig<String>(enabled: true),
+          getOptionLabel: (option) => option,
+          decoration: const InputDecoration(labelText: 'Greeting'),
         ),
-      );
+      ),
+    );
 
-      await tester.tap(find.byType(TextField));
-      await tester.pumpAndSettle();
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
 
-      expect(queries, ['']);
-      expect(findPopupText('Hello'), findsOneWidget);
-      expect(findPopupText('World'), findsOneWidget);
+    expect(queries, ['']);
+    expect(findPopupText('Hello'), findsOneWidget);
+    expect(findPopupText('World'), findsOneWidget);
 
-      await tester.enterText(find.byType(TextField), 'o');
-      await tester.pumpAndSettle();
-      expect(queries, ['']);
-      expect(findPopupText('Hello'), findsOneWidget);
-      expect(findPopupText('World'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'o');
+    await tester.pumpAndSettle();
+    expect(queries, ['']);
+    expect(findPopupText('Hello'), findsOneWidget);
+    expect(findPopupText('World'), findsOneWidget);
 
-      await tester.enterText(find.byType(TextField), 'wor');
-      await tester.pumpAndSettle();
-      expect(queries, ['']);
-      expect(findPopupText('Hello'), findsNothing);
-      expect(findPopupText('World'), findsOneWidget);
-    },
-  );
+    await tester.enterText(find.byType(TextField), 'wor');
+    await tester.pumpAndSettle();
+    expect(queries, ['']);
+    expect(findPopupText('Hello'), findsNothing);
+    expect(findPopupText('World'), findsOneWidget);
+  });
 
   testWidgets(
     'loadOnlyOnce executes a single remote request even with reloadOnQueryChange enabled',
@@ -1262,8 +1258,9 @@ void main() {
     },
   );
 
-  testWidgets('async pagination appends options when scrolling near list end',
-      (tester) async {
+  testWidgets('async pagination appends options when scrolling near list end', (
+    tester,
+  ) async {
     var nonPagedCalls = 0;
     final requestedPages = <int>[];
 
@@ -1474,8 +1471,11 @@ void main() {
                     child: Form(
                       child: AutocompleteField<String>.asyncMultiple(
                         asyncConfig: AutocompleteAsyncConfig(
-                          optionsBuilder: (query) async =>
-                              const ['Apple', 'Banana', 'Cherry'],
+                          optionsBuilder: (query) async => const [
+                            'Apple',
+                            'Banana',
+                            'Cherry',
+                          ],
                           debounceDuration: Duration.zero,
                           loadOnFocus: true,
                         ),
@@ -1486,9 +1486,7 @@ void main() {
                             ..addAll(values);
                         }),
                         getOptionLabel: (option) => option,
-                        decoration: const InputDecoration(
-                          labelText: 'Fruits',
-                        ),
+                        decoration: const InputDecoration(labelText: 'Fruits'),
                       ),
                     ),
                   ),
@@ -1713,8 +1711,10 @@ void main() {
                     child: Form(
                       child: AutocompleteField<String>.async(
                         asyncConfig: AutocompleteAsyncConfig(
-                          optionsBuilder: (query) async =>
-                              const ['Apple', 'Banana'],
+                          optionsBuilder: (query) async => const [
+                            'Apple',
+                            'Banana',
+                          ],
                           debounceDuration: Duration.zero,
                           loadOnFocus: true,
                         ),

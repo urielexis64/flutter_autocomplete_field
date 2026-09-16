@@ -458,12 +458,17 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
       return const [];
     }
 
-    var options = applyAutocompleteFilter<T>(
-      options: _allOptions,
-      query: query,
-      getOptionLabel: _config.getOptionLabel,
-      filterConfig: _config.filterConfig,
-    );
+    final allOptions = _allOptions;
+    final filterConfig = _config.filterConfig;
+    final shouldFilter = filterConfig?.enabled ?? !_config.isAsync;
+    var options = shouldFilter
+        ? applyAutocompleteFilter<T>(
+            options: allOptions,
+            query: query,
+            getOptionLabel: _config.getOptionLabel,
+            filterConfig: filterConfig,
+          )
+        : allOptions;
 
     if (!_config.selectionConfig.keepSelectedOptionsVisible) {
       options = options.where((option) => !_isOptionSelected(option)).toList();
@@ -1183,8 +1188,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
       return null;
     }
 
-    final overlayRenderObject =
-        Overlay.of(overlayContext).context.findRenderObject();
+    final overlayRenderObject = Overlay.of(
+      overlayContext,
+    ).context.findRenderObject();
     final fieldRenderObject = fieldContext.findRenderObject();
     if (overlayRenderObject is! RenderBox || fieldRenderObject is! RenderBox) {
       return null;
@@ -1205,8 +1211,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
     required Rect targetRect,
     required double? configuredWidth,
   }) {
-    final overlayRenderObject =
-        Overlay.of(overlayContext).context.findRenderObject();
+    final overlayRenderObject = Overlay.of(
+      overlayContext,
+    ).context.findRenderObject();
     if (overlayRenderObject is! RenderBox) {
       return null;
     }
@@ -1254,7 +1261,9 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
     final maxLeft = overlayRenderObject.size.width - viewportMargin - width;
     final clampedLeft = requestedLeft
         .clamp(
-            viewportMargin, maxLeft < viewportMargin ? viewportMargin : maxLeft)
+          viewportMargin,
+          maxLeft < viewportMargin ? viewportMargin : maxLeft,
+        )
         .toDouble();
 
     return _PopupPlacement(
@@ -1327,10 +1336,7 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
     final onPressed = _canMutateValue ? _handleDropdownButtonPressed : null;
 
     if (_config.dropdownButtonConfig.iconBuilder != null) {
-      return _config.dropdownButtonConfig.iconBuilder!(
-        onPressed,
-        _isOpen,
-      );
+      return _config.dropdownButtonConfig.iconBuilder!(onPressed, _isOpen);
     }
 
     return IconButton(

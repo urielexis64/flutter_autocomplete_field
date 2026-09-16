@@ -14,7 +14,7 @@ class AutocompleteFilterConfig<T> {
     this.limit,
     this.matchFrom = AutocompleteMatchFrom.anywhere,
     this.stringify,
-    this.enabled = false,
+    this.enabled = true,
   }) : assert(limit == null || limit >= 0);
 
   /// Optional full custom filter callback.
@@ -52,9 +52,11 @@ class AutocompleteFilterConfig<T> {
   /// When null, the field's `getOptionLabel` callback is used.
   final AutocompleteOptionLabel<T>? stringify;
 
-  /// Reserved compatibility flag for explicit filtering enablement.
+  /// Whether client-side filtering is enabled when this config is supplied.
   ///
-  /// The current filter pipeline always evaluates options through either
-  /// [filterOptions] or the built-in matching implementation.
+  /// Synchronous fields filter locally when no config is provided. Asynchronous
+  /// fields show the complete options-builder response unless filtering is
+  /// explicitly enabled by supplying a config. Set this to `false` to bypass
+  /// matching and limiting for either field type.
   final bool enabled;
 }
