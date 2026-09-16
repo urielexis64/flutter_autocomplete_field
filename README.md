@@ -13,7 +13,7 @@ The package is built for touch/virtual-keyboard UX, chip-based multiple mode, as
 
 ```yaml
 dependencies:
-  flutter_autocomplete: ^0.0.10
+  flutter_autocomplete: ^0.0.11
 ```
 
 ```dart
@@ -33,11 +33,11 @@ AutocompleteField<String>.single(
 )
 ```
 
-## What's New In 0.0.10
+## What's New In 0.0.11
 
-- All `AutocompleteField` constructors now support `textStyle` for per-widget input text styling.
-- The style is forwarded to both single-field and chip-based multiple-field input renderers instead of requiring a surrounding `Theme` override.
-- The release includes regression coverage for text-style forwarding and refreshed package docs for `0.0.10`.
+- Async fields now preserve the complete `optionsBuilder` response by default, including backend filtering, ranking, and alias matches.
+- Supplying `AutocompleteFilterConfig` opts async fields into client-side filtering; `enabled: false` bypasses matching and limiting for both async and synchronous fields.
+- Tapping a collapsed `+N` hidden-count chip now reveals all selected chips without focusing the field or opening the autocomplete popup.
 
 ## Demo
 

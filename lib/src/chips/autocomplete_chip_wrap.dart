@@ -121,10 +121,10 @@ class _AutocompleteChipWrapState<T> extends State<AutocompleteChipWrap<T>> {
     final valuesChanged = !listEquals(oldWidget.values, widget.values);
     final chipConfigChanged =
         oldWidget.chipConfig.limitTags != widget.chipConfig.limitTags ||
-        oldWidget.chipConfig.limitTagsWhenFocused !=
-            widget.chipConfig.limitTagsWhenFocused ||
-        oldWidget.chipConfig.showHiddenCountChip !=
-            widget.chipConfig.showHiddenCountChip;
+            oldWidget.chipConfig.limitTagsWhenFocused !=
+                widget.chipConfig.limitTagsWhenFocused ||
+            oldWidget.chipConfig.showHiddenCountChip !=
+                widget.chipConfig.showHiddenCountChip;
     final shouldResetExpansion =
         valuesChanged || chipConfigChanged || !_canCollapseHiddenChips;
     if (shouldResetExpansion && _expandedHiddenChips) {
@@ -334,8 +334,7 @@ class _AutocompleteChipWrapState<T> extends State<AutocompleteChipWrap<T>> {
           behavior: HitTestBehavior.opaque,
           onTap: _handleHiddenCountChipTap,
           child: AbsorbPointer(
-            child:
-                widget.chipConfig.hiddenCountChipBuilder?.call(
+            child: widget.chipConfig.hiddenCountChipBuilder?.call(
                   context,
                   hiddenCount,
                 ) ??

@@ -1,3 +1,9 @@
+## 0.0.11
+
+* Async fields now display the complete `optionsBuilder` response by default, preserving server-side filtering, ranking, and matches outside the visible option label.
+* Made `AutocompleteFilterConfig.enabled` functional: supplied configs enable client-side filtering by default, while `enabled: false` bypasses matching and limiting. Synchronous fields retain their existing local-filtering default.
+* Made collapsed hidden-count chips expandable, so tapping `+N` reveals all selected chips without focusing the field or opening the autocomplete popup.
+
 ## 0.0.10
 
 * Added a `textStyle` parameter to all `AutocompleteField` constructors so the internal input text can be styled per widget without relying on a surrounding theme override.

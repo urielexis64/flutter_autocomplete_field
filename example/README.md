@@ -1,13 +1,13 @@
 # flutter_autocomplete example
 
 This example app is a runnable cookbook for most package features, including
-external async field patching without forcing widget key resets and the
-popup and selection-surface fixes documented for `0.0.8`, plus the
-selected-value start-adornment flow added for `0.0.9` and the per-field
-`textStyle` API added for `0.0.10`, including focused-tap popup reopening,
-popup scrolling inside parent `onDrag` scroll views, stable local-multiple
-popup behavior with `closeOnSelect: false`, and custom popup row background
-colors.
+the `0.0.11` async behavior that preserves complete remote results unless
+client-side filtering is explicitly enabled, plus expandable hidden-count
+chips that reveal all selected values without focusing the field. It also
+covers external async field patching, focused-tap popup reopening, popup
+scrolling inside parent `onDrag` scroll views, stable local-multiple popup
+behavior with `closeOnSelect: false`, custom popup row background colors,
+selected-value start adornments, and per-field input text styling.
 
 ## Run it
 
