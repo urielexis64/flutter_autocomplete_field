@@ -40,6 +40,8 @@ class AutocompleteChipWrap<T> extends StatefulWidget {
     required this.chipConfig,
     required this.onTap,
     required this.onChanged,
+    this.onSubmitted,
+    this.textInputAction,
     this.suffixIcon,
     this.renderingConfig,
     super.key,
@@ -89,6 +91,12 @@ class AutocompleteChipWrap<T> extends StatefulWidget {
 
   /// Query changed callback from the embedded [TextField].
   final ValueChanged<String> onChanged;
+
+  /// Called when the keyboard action button submits the embedded input.
+  final ValueChanged<String>? onSubmitted;
+
+  /// Keyboard action button forwarded to the embedded [TextField].
+  final TextInputAction? textInputAction;
 
   /// Optional trailing controls merged into [decoration.suffixIcon].
   final Widget? suffixIcon;
@@ -225,8 +233,10 @@ class _AutocompleteChipWrapState<T> extends State<AutocompleteChipWrap<T>> {
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
+                textInputAction: widget.textInputAction,
                 onTap: widget.onTap,
                 onChanged: widget.onChanged,
+                onSubmitted: widget.onSubmitted,
               ),
             ),
         ],
@@ -270,8 +280,10 @@ class _AutocompleteChipWrapState<T> extends State<AutocompleteChipWrap<T>> {
               border: InputBorder.none,
               contentPadding: EdgeInsets.zero,
             ),
+            textInputAction: widget.textInputAction,
             onTap: widget.onTap,
             onChanged: widget.onChanged,
+            onSubmitted: widget.onSubmitted,
           ),
         ),
     ];

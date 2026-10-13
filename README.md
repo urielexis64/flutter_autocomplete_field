@@ -128,6 +128,42 @@ AutocompleteField<String>.multiple(
 )
 ```
 
+Values can be created two ways:
+
+- tapping the `Create tag "..."` row in the popup;
+- submitting the input with the keyboard action button (`Ok`/`Done` on a
+  virtual keyboard, `Enter` on a hardware one).
+
+Submit-driven creation runs the same flow as the row, so `createOption`,
+`clearInputOnCreate`, `minInputLength`, and `shouldShowCreateOption` all apply.
+Nothing is created when the typed text already matches an option or the current
+selection.
+
+The popup shows the create row only when no regular options are visible, while
+submit is not restricted that way: submitting `fl` while `flutter` is listed
+creates `fl`. Use `shouldShowCreateOption` to narrow creatable inputs, or
+`createOnSubmit: false` to keep creation tap-only:
+
+```dart
+creatableConfig: AutocompleteCreatableConfig<String>(
+  createOption: (input) => input.trim().toLowerCase(),
+  createOnSubmit: false,
+),
+```
+
+Every constructor also accepts `textInputAction` to pick the keyboard action
+button and `onSubmitted` to observe submissions. `onSubmitted` runs after
+package-managed submit handling, whether or not a value was created.
+
+```dart
+AutocompleteField<String>.single(
+  options: fruits,
+  getOptionLabel: (option) => option,
+  textInputAction: TextInputAction.done,
+  onSubmitted: (input) => debugPrint('submitted: $input'),
+)
+```
+
 ### 5) Grouping (visual only)
 
 Grouping changes popup rendering only.

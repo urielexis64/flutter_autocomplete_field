@@ -59,3 +59,15 @@ Future<void> selectCreateOption(WidgetTester tester, String text) async {
   option.onTap?.call();
   await tester.pumpAndSettle();
 }
+
+/// Triggers the on-screen keyboard action button for the focused input.
+///
+/// Mirrors pressing `Ok`/`Done` on a virtual keyboard, which Flutter reports
+/// through `TextField.onSubmitted`.
+Future<void> submitAutocompleteInput(
+  WidgetTester tester, {
+  TextInputAction action = TextInputAction.done,
+}) async {
+  await tester.testTextInput.receiveAction(action);
+  await tester.pumpAndSettle();
+}

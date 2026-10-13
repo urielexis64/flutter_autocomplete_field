@@ -165,7 +165,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
           _SectionCard(
             title: '4) Creatable multiple tags',
             subtitle:
-                'Users can create values not present in the original list, keep the popup open between picks, and customize popup row backgrounds.',
+                'Users can create values not present in the original list by tapping the create row or pressing the keyboard Ok button, keep the popup open between picks, and customize popup row backgrounds.',
             child: AutocompleteField<String>.multiple(
               options: const ['critical', 'feature', 'bug', 'blocked'],
               values: _tagValues,
@@ -186,7 +186,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               decoration: const InputDecoration(
                 labelText: 'Issue tags',
                 helperText:
-                    'Selected rows use a custom background and the popup stays open for repeated picks.',
+                    'Type a new tag and press Ok on the keyboard, or tap the create row.',
                 border: OutlineInputBorder(),
               ),
             ),

@@ -1,3 +1,9 @@
+## 0.0.12
+
+* Creatable fields now create the typed value when the input is submitted from the keyboard action button (`Ok`/`Done`), reusing the same flow as tapping the create row instead of requiring a tap. Opt out with the new `AutocompleteCreatableConfig.createOnSubmit: false`.
+* Added `textInputAction` and `onSubmitted` to all `AutocompleteField` constructors so the keyboard action button can be configured and submissions observed, including the embedded text field used inside chip-based multiple mode.
+* Added regression coverage for submit-driven creation across single, multiple, and async modes, and refreshed docs/example metadata for `0.0.12`.
+
 ## 0.0.11
 
 * Async fields now display the complete `optionsBuilder` response by default, preserving server-side filtering, ranking, and matches outside the visible option label.

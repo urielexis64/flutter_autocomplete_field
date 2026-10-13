@@ -17,7 +17,12 @@ import 'autocomplete_field_view.dart';
 
 /// {@template autocomplete.noKeyboardSupport}
 /// This package is mobile-first and does not implement physical keyboard
-/// shortcuts, arrow navigation, Home/End handling, or Enter/Escape behavior.
+/// shortcuts, arrow navigation, Home/End handling, or Escape behavior.
+///
+/// The keyboard action button is supported: `textInputAction` configures it,
+/// `onSubmitted` reports submissions, and
+/// `AutocompleteCreatableConfig.createOnSubmit` creates the typed value when
+/// the input is submitted.
 /// {@endtemplate}
 ///
 /// {@template autocomplete.formIntegration}
@@ -99,6 +104,8 @@ class AutocompleteField<T> extends StatelessWidget {
     TextStyle? textStyle,
     TextEditingController? controller,
     FocusNode? focusNode,
+    ValueChanged<String>? onSubmitted,
+    TextInputAction? textInputAction,
     FormFieldValidator<T?>? validator,
     FormFieldSetter<T?>? onSaved,
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
@@ -129,6 +136,8 @@ class AutocompleteField<T> extends StatelessWidget {
         textStyle: textStyle,
         controller: controller,
         focusNode: focusNode,
+        onSubmitted: onSubmitted,
+        textInputAction: textInputAction,
         validator: validator,
         onSaved: onSaved,
         enabled: enabled,
@@ -183,6 +192,8 @@ class AutocompleteField<T> extends StatelessWidget {
     TextStyle? textStyle,
     TextEditingController? controller,
     FocusNode? focusNode,
+    ValueChanged<String>? onSubmitted,
+    TextInputAction? textInputAction,
     FormFieldValidator<List<T>>? validator,
     FormFieldSetter<List<T>>? onSaved,
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
@@ -214,6 +225,8 @@ class AutocompleteField<T> extends StatelessWidget {
         textStyle: textStyle,
         controller: controller,
         focusNode: focusNode,
+        onSubmitted: onSubmitted,
+        textInputAction: textInputAction,
         validator: validator,
         onSaved: onSaved,
         enabled: enabled,
@@ -270,6 +283,8 @@ class AutocompleteField<T> extends StatelessWidget {
     TextStyle? textStyle,
     TextEditingController? controller,
     FocusNode? focusNode,
+    ValueChanged<String>? onSubmitted,
+    TextInputAction? textInputAction,
     FormFieldValidator<T?>? validator,
     FormFieldSetter<T?>? onSaved,
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
@@ -300,6 +315,8 @@ class AutocompleteField<T> extends StatelessWidget {
         textStyle: textStyle,
         controller: controller,
         focusNode: focusNode,
+        onSubmitted: onSubmitted,
+        textInputAction: textInputAction,
         validator: validator,
         onSaved: onSaved,
         enabled: enabled,
@@ -351,6 +368,8 @@ class AutocompleteField<T> extends StatelessWidget {
     TextStyle? textStyle,
     TextEditingController? controller,
     FocusNode? focusNode,
+    ValueChanged<String>? onSubmitted,
+    TextInputAction? textInputAction,
     FormFieldValidator<List<T>>? validator,
     FormFieldSetter<List<T>>? onSaved,
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
@@ -382,6 +401,8 @@ class AutocompleteField<T> extends StatelessWidget {
         textStyle: textStyle,
         controller: controller,
         focusNode: focusNode,
+        onSubmitted: onSubmitted,
+        textInputAction: textInputAction,
         validator: validator,
         onSaved: onSaved,
         enabled: enabled,

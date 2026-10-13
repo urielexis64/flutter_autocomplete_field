@@ -62,6 +62,8 @@ class AutocompleteFieldConfiguration<T> {
     this.values,
     this.onChanged,
     this.onValuesChanged,
+    this.onSubmitted,
+    this.textInputAction,
     this.singleValidator,
     this.multipleValidator,
     this.singleOnSaved,
@@ -93,6 +95,8 @@ class AutocompleteFieldConfiguration<T> {
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
     TextEditingController? controller,
     FocusNode? focusNode,
+    ValueChanged<String>? onSubmitted,
+    TextInputAction? textInputAction,
     FormFieldValidator<T?>? validator,
     FormFieldSetter<T?>? onSaved,
     bool Function(T option)? isOptionDisabled,
@@ -118,6 +122,8 @@ class AutocompleteFieldConfiguration<T> {
       textStyle: textStyle,
       controller: controller,
       focusNode: focusNode,
+      onSubmitted: onSubmitted,
+      textInputAction: textInputAction,
       singleValidator: validator,
       singleOnSaved: onSaved,
       enabled: enabled,
@@ -152,6 +158,8 @@ class AutocompleteFieldConfiguration<T> {
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
     TextEditingController? controller,
     FocusNode? focusNode,
+    ValueChanged<String>? onSubmitted,
+    TextInputAction? textInputAction,
     FormFieldValidator<List<T>>? validator,
     FormFieldSetter<List<T>>? onSaved,
     bool Function(T option)? isOptionDisabled,
@@ -178,6 +186,8 @@ class AutocompleteFieldConfiguration<T> {
       textStyle: textStyle,
       controller: controller,
       focusNode: focusNode,
+      onSubmitted: onSubmitted,
+      textInputAction: textInputAction,
       multipleValidator: validator,
       multipleOnSaved: onSaved,
       enabled: enabled,
@@ -211,6 +221,8 @@ class AutocompleteFieldConfiguration<T> {
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
     TextEditingController? controller,
     FocusNode? focusNode,
+    ValueChanged<String>? onSubmitted,
+    TextInputAction? textInputAction,
     FormFieldValidator<T?>? validator,
     FormFieldSetter<T?>? onSaved,
     bool Function(T option)? isOptionDisabled,
@@ -236,6 +248,8 @@ class AutocompleteFieldConfiguration<T> {
       textStyle: textStyle,
       controller: controller,
       focusNode: focusNode,
+      onSubmitted: onSubmitted,
+      textInputAction: textInputAction,
       singleValidator: validator,
       singleOnSaved: onSaved,
       enabled: enabled,
@@ -270,6 +284,8 @@ class AutocompleteFieldConfiguration<T> {
     AutocompleteOptionEquality<T>? isOptionEqualToValue,
     TextEditingController? controller,
     FocusNode? focusNode,
+    ValueChanged<String>? onSubmitted,
+    TextInputAction? textInputAction,
     FormFieldValidator<List<T>>? validator,
     FormFieldSetter<List<T>>? onSaved,
     bool Function(T option)? isOptionDisabled,
@@ -296,6 +312,8 @@ class AutocompleteFieldConfiguration<T> {
       textStyle: textStyle,
       controller: controller,
       focusNode: focusNode,
+      onSubmitted: onSubmitted,
+      textInputAction: textInputAction,
       multipleValidator: validator,
       multipleOnSaved: onSaved,
       enabled: enabled,
@@ -377,6 +395,14 @@ class AutocompleteFieldConfiguration<T> {
   /// Optional externally managed focus node.
   final FocusNode? focusNode;
 
+  /// Optional callback invoked when the keyboard action submits the input.
+  ///
+  /// Runs after package-managed submit handling, such as creatable submit.
+  final ValueChanged<String>? onSubmitted;
+
+  /// Optional keyboard action button forwarded to the internal text field.
+  final TextInputAction? textInputAction;
+
   /// Single-mode validator for form integration.
   final FormFieldValidator<T?>? singleValidator;
 
@@ -452,6 +478,8 @@ class AutocompleteFieldConfiguration<T> {
       isOptionEqualToValue: isOptionEqualToValue,
       controller: controller,
       focusNode: focusNode,
+      onSubmitted: onSubmitted,
+      textInputAction: textInputAction,
       value: identical(value, _unset) ? this.value : value as T?,
       values: identical(values, _unset)
           ? this.values

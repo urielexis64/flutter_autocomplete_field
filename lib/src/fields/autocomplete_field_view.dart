@@ -235,6 +235,8 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
             renderingConfig: widget.configuration.renderingConfig,
             suffixIcon: _buildTrailingButtons(),
             onChanged: _handleInputChanged,
+            onSubmitted: _handleSubmitted,
+            textInputAction: widget.configuration.textInputAction,
           )
         : SingleAutocompleteInput<T>(
             controller: _controller,
@@ -246,6 +248,8 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
             autofocus: widget.configuration.autofocus,
             onTap: _handleFieldTap,
             onChanged: _handleInputChanged,
+            onSubmitted: _handleSubmitted,
+            textInputAction: widget.configuration.textInputAction,
             suffixIcon: _buildTrailingButtons(),
             selectedValue: _selectedValue,
             selectedLabel: _selectedValue == null
@@ -488,14 +492,20 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
   ///
   /// Returns `null` when creatable behavior is disabled or creation is not
   /// allowed by the current query/selection/configuration.
-  String? get _createOptionInput {
+  String? get _createOptionInput => _createOptionInputFor(_controller.text);
+
+  /// Create candidate for [text], independent of current controller contents.
+  ///
+  /// Submit handling relies on the text reported by the input widget because
+  /// the controller can be reset by focus transitions that run before the
+  /// submit callback is processed.
+  String? _createOptionInputFor(String text) {
     if (!_config.isCreatable) {
       return null;
     }
 
     final creatable = _config.creatableConfig!;
-    final rawInput =
-        creatable.trimInput ? _controller.text.trim() : _controller.text;
+    final rawInput = creatable.trimInput ? text.trim() : text;
     if (rawInput.length < creatable.minInputLength) {
       return null;
     }
@@ -834,12 +844,31 @@ class _AutocompleteFieldViewState<T> extends State<AutocompleteFieldView<T>>
     _afterSelection();
   }
 
+  /// Handles keyboard submit actions from the internal text field.
+  ///
+  /// When [AutocompleteCreatableConfig.createOnSubmit] is enabled, the
+  /// submitted text runs through the same create flow as the popup create row.
+  /// The configured `onSubmitted` callback always runs afterwards, whether or
+  /// not a value was created.
+  void _handleSubmitted(String value) {
+    final creatable = _config.creatableConfig;
+    if (creatable != null && creatable.createOnSubmit && _canMutateValue) {
+      _handleCreateOption(value);
+    }
+    _config.onSubmitted?.call(value);
+  }
+
   /// Creates and selects a synthetic option from the current query.
-  void _handleCreateOption() {
+  ///
+  /// Pass [submittedText] to create from text reported by a submit action
+  /// instead of the live controller value.
+  void _handleCreateOption([String? submittedText]) {
     if (!_canMutateValue) {
       return;
     }
-    final input = _createOptionInput;
+    final input = submittedText == null
+        ? _createOptionInput
+        : _createOptionInputFor(submittedText);
     if (input == null) {
       return;
     }

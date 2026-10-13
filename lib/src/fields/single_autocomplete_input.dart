@@ -26,6 +26,8 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
     required this.autofocus,
     required this.onTap,
     required this.onChanged,
+    this.onSubmitted,
+    this.textInputAction,
     this.suffixIcon,
     this.selectedValue,
     this.selectedLabel,
@@ -60,6 +62,12 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
 
   /// Called when query text changes.
   final ValueChanged<String> onChanged;
+
+  /// Called when the keyboard action button submits the input.
+  final ValueChanged<String>? onSubmitted;
+
+  /// Keyboard action button forwarded to the internal [TextField].
+  final TextInputAction? textInputAction;
 
   /// Optional trailing controls merged into [decoration.suffixIcon].
   final Widget? suffixIcon;
@@ -125,8 +133,10 @@ class SingleAutocompleteInput<T> extends StatelessWidget {
       autofocus: autofocus,
       style: textStyle,
       decoration: resolvedDecoration,
+      textInputAction: textInputAction,
       onTap: onTap,
       onChanged: onChanged,
+      onSubmitted: onSubmitted,
     );
   }
 }
